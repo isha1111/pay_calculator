@@ -6,7 +6,7 @@
 	${project}
 </div>
 <div class="hidden" id="calculated_data"></div>
-
+<a id="index_tag" href="/" class="center">Calculate another pay</a>
 <span id="download_span" style="display: none;">
 	<img id="download_img" src="/static/images/download_logo.png" onclick="ConvertToCSV()" ></br>
 	<span id="download_text" >Download CSV</span>

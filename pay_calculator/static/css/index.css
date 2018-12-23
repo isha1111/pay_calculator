@@ -12,13 +12,22 @@ td {
 .hidden {
 	display: none;
 }
+
+#index_tag {
+	display: block;
+	margin-top: 2em;
+}
+
+.center {
+	text-align: center;
+}
 #download_img{
 	max-height: 2em;
 	cursor: pointer;
 }
 
 #download_span {
-    margin-top: 2em;
+    margin-top: 1em;
     text-align: center;
     margin-bottom: 1em;
 }
