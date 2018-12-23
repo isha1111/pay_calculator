@@ -24,16 +24,16 @@ function csv_reader(){
 }
 
 
-function ConvertToCSV() {
-           	var file_data = $("#calculated_data").html();
-           	file_data = JSON.parse(file_data);
+function ConvertToCSV(file_data) {
+			var pay_data = $( "#hidden_pay" ).html();
+           	var file_data = JSON.parse(pay_data);
             var str = '';
             var header = 'name,20.21,24.68,21.11,26.68,25.12,47.46,total_amount\r\n';
             str += header;
             for (var i = 0; i < Object.keys(file_data).length; i++) {
                 var line = '';
                 var guard_name = Object.keys(file_data)[i];
-                line += guard_name + ","; 
+                line += guard_name.toUpperCase() + ","; 
                 line += file_data[guard_name][0]["weekday_no_rotating_rate"] +",";
                 line += file_data[guard_name][0]["weeknight_no_rotating_rate"] +",";
                 line += file_data[guard_name][0]["weekday_and_weeknight_rate"] +",";
@@ -54,6 +54,7 @@ function ConvertToCSV() {
         }
 
 function DrawTable(file_data) {
+	var file_data = JSON.parse(file_data);
 	var str = "<table id='pay_table'><thead><tr><td>Guard Name</td><td>20.21</td><td>24.68</td><td>21.11</td><td>26.68</td><td>25.12</td><td>47.46</td><td>Total Amount</td></tr></thead><tbody>";
 	
 	for (var i = 0; i < Object.keys(file_data).length; i++) {
@@ -61,5 +62,14 @@ function DrawTable(file_data) {
 			str += "<tr><td>"+guard_name.toUpperCase()+"</td><td>"+file_data[guard_name][0]['weekday_no_rotating_rate']+"</td><td>"+file_data[guard_name][0]["weeknight_no_rotating_rate"]+"</td><td>"+file_data[guard_name][0]["weekday_and_weeknight_rate"]+"</td><td>"+file_data[guard_name][0]["weeknight_and_weekend_rotating_rate"]+"</td><td>"+file_data[guard_name][0]["weekday_and_weeknight_and_weekend_rotating_rate"]+"</td><td>"+file_data[guard_name][0]["public_holiday_hours"]+"</td><td>"+parseFloat(file_data[guard_name][0]["total_amount"]).toFixed(2)+"</td></tr>";
 	}
 	str +="</tbody></table>";
+	$("#pay").empty();
 	$("#pay").append(str);
 }
+
+$(document).ready(function(){
+	var pay_data = $( "#hidden_pay" ).html();
+	if(pay_data != '') {
+		document.getElementById("download_span").style.display = "block";
+		DrawTable(pay_data)
+	}
+})

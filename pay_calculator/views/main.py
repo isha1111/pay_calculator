@@ -28,7 +28,7 @@ class NswHolidays(holidays.Australia):
 def my_view(request):
     return {'project': 'JMD PAY CALCULATOR','pay':''}
 
-@view_config(route_name='calculate_payrate', renderer='json')
+@view_config(route_name='calculate_payrate', renderer='../templates/pay.mako')
 def calculate_payrate(request):
 	public_day_payrate = 43
 	weekday_no_rotating_rate = 21
@@ -39,12 +39,17 @@ def calculate_payrate(request):
 	day_end_time = datetime.strptime('00:00:00', '%H:%M:%S')
 	# day_start_time = datetime.strptime('00:00:00', '%H:%M:%S')
 
-	roaster_data = request.params.get('roaster_data')
+	roaster_data = request.POST['roaster_data']
+	roaster_data = roaster_data.value
+	roaster_data = roaster_data.decode('utf-8')
+
+	roaster_data_list = roaster_data.split("\r\n")
+	roaster_row_list = roaster_data_list[1:]
+
 	state = request.params.get('state')
 	pay = {}
 	header = 'Officer full name','Published start date','Published start','Published end','Published actual hours','Published location name','Client name','Officer - Bank Account Name','Officer - BSB','Officer - Bank Account Number'
 	
-	roaster_row_list = roaster_data.split("\n")	
 
 	roaster_dict = {}
 	for row in roaster_row_list[1:]:
@@ -293,4 +298,4 @@ def calculate_payrate(request):
 		temp_obj["total_amount"] = total_amount
 		pay[guard_name].append(temp_obj)
     
-	return pay
+	return {'project': 'JMD PAY CALCULATOR','pay':json.dumps(pay)}
