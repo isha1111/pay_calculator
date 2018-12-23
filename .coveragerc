@@ -1,0 +1,3 @@
+[run]
+source = pay_calculator
+omit = pay_calculator/test*
