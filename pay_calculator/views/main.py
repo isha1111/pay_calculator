@@ -85,6 +85,8 @@ def calculate_payrate(request):
 		
 		for shift in shifts:
 			guard_shift_day = shift['shift_day']
+			guard_shift_day = datetime.strptime(guard_shift_day,'%d/%m/%y').strftime('%d/%m/%Y')
+			print(guard_shift_day)
 			guard_start_time = shift['start_time']
 			guard_end_time = shift['end_time']
 			published_hours = shift['published_hours']
