@@ -43,33 +43,34 @@ def calculate_payrate(request):
 	roaster_data = roaster_data.value
 	roaster_data = roaster_data.decode('utf-8')
 
-	roaster_data_list = roaster_data.split("\r\n")
+	roaster_data_list = roaster_data.split("\n")
 	roaster_row_list = roaster_data_list[1:]
 
 	state = request.params.get('state')
 	pay = {}
 	header = 'Officer full name','Published start date','Published start','Published end','Published actual hours','Published location name','Client name','Officer - Bank Account Name','Officer - BSB','Officer - Bank Account Number'
 	
-
 	roaster_dict = {}
 	for row in roaster_row_list[1:]:
 		data = row.split(",")
-		guard_name = data[0].lower()
-		shift_day = data[1]
-		start_time = data[2] 
-		end_time = data[3]
-		published_hours = data[4]
 
-		if guard_name not in roaster_dict:
-			roaster_dict[guard_name] = []
+		if len(data) == 10:
+			guard_name = data[0].lower()
+			shift_day = data[1]				
+			start_time = data[2] 
+			end_time = data[3]
+			published_hours = data[4]
 
-		temp_dict = {}
-		temp_dict['shift_day'] = shift_day
-		temp_dict['start_time'] = start_time
-		temp_dict['end_time'] = end_time
-		temp_dict['published_hours'] = float(published_hours)
+			if guard_name not in roaster_dict:
+				roaster_dict[guard_name] = []
 
-		roaster_dict[guard_name].append(temp_dict)
+			temp_dict = {}
+			temp_dict['shift_day'] = shift_day
+			temp_dict['start_time'] = start_time
+			temp_dict['end_time'] = end_time
+			temp_dict['published_hours'] = float(published_hours)
+
+			roaster_dict[guard_name].append(temp_dict)
 
 	for guard_name in roaster_dict:
 		shifts = roaster_dict[guard_name]
@@ -85,8 +86,10 @@ def calculate_payrate(request):
 		
 		for shift in shifts:
 			guard_shift_day = shift['shift_day']
-			guard_shift_day = datetime.strptime(guard_shift_day,'%d/%m/%y').strftime('%d/%m/%Y')
-			print(guard_shift_day)
+			if '-' in guard_shift_day:
+				guard_shift_day = datetime.strptime(guard_shift_day,'%Y-%m-%d').strftime('%d/%m/%Y')
+			else:
+				guard_shift_day = datetime.strptime(guard_shift_day,'%d/%m/%y').strftime('%d/%m/%Y')
 			guard_start_time = shift['start_time']
 			guard_end_time = shift['end_time']
 			published_hours = shift['published_hours']
