@@ -9,6 +9,26 @@ body{
 td {
 	border: 1px solid black;
 }
+#instruction-points{
+	margin-top: 1em;
+}
+#instructions {
+	margin-top: 2em;
+}
+.label {
+	margin-left: 10em;
+	margin-right: 2em;
+}
+#calculate_input{
+    margin-top: 1em;
+    font-size: 1em;
+    border-radius: 6px;
+    color: #ffffff;
+    background: #B5651D;
+}
+.warning {
+	color: red;
+}
 .hidden {
 	display: none;
 }
@@ -39,7 +59,7 @@ td {
 
 .form{
 	text-align: center;
-	margin-top: 5em;
+	margin-top: 3em;
 }
 #roaster_file{
 	margin-top: 2em;
