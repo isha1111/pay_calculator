@@ -55,23 +55,25 @@ def calculate_payrate(request):
 	for row in roaster_row_list:
 		data = row.split(",")
 
-		if len(data) == 10:
-			guard_name = data[0].lower()
-			shift_day = data[1]				
-			start_time = data[2] 
-			end_time = data[3]
-			published_hours = data[4]
+		guard_name = data[0].lower()
+		if guard_name == '':
+			continue
+		shift_day = data[1]				
+		start_time = data[2] 
+		end_time = data[3]
+		published_hours = data[4]
 
-			if guard_name not in roaster_dict:
-				roaster_dict[guard_name] = []
+		if guard_name not in roaster_dict:
+			roaster_dict[guard_name] = []
 
-			temp_dict = {}
-			temp_dict['shift_day'] = shift_day
-			temp_dict['start_time'] = start_time
-			temp_dict['end_time'] = end_time
-			temp_dict['published_hours'] = float(published_hours)
+		temp_dict = {}
+		temp_dict['shift_day'] = shift_day
+		temp_dict['start_time'] = start_time
+		temp_dict['end_time'] = end_time
+		temp_dict['published_hours'] = float(published_hours)
 
-			roaster_dict[guard_name].append(temp_dict)
+		roaster_dict[guard_name].append(temp_dict)
+
 	for guard_name in roaster_dict:
 		shifts = roaster_dict[guard_name]
 		num_of_shifts = len(shifts)
@@ -131,7 +133,7 @@ def calculate_payrate(request):
 					day_hours = 0
 
 					# public holiday
-					if guard_shift_day_first in holidays.CountryHoliday('AU', prov=state):
+					if guard_shift_day_first in holidays.AU(prov=state):
 						public_holiday_hours += first_day_hours
 					else:
 						total_published_hours += published_hours
@@ -164,7 +166,7 @@ def calculate_payrate(request):
 							weekend_hours += first_day_hours
 
 					# check for second day
-					if guard_shift_day_second in holidays.CountryHoliday('AU', prov=state):
+					if guard_shift_day_second in holidays.AU(prov=state):
 						public_holiday_hours += second_day_hours
 					else:
 						# calculate weekday weekend again
@@ -203,8 +205,7 @@ def calculate_payrate(request):
 				else:
 					first_day_hours = (guard_end_time_object - guard_start_time_object).total_seconds()/3600
 					# public holiday
-					if guard_shift_day in holidays.CountryHoliday('AU', prov=state):
-						# print(guard_shift_day)
+					if guard_shift_day in holidays.AU(prov=state):
 						public_holiday_hours += published_hours
 
 					else:
@@ -239,9 +240,6 @@ def calculate_payrate(request):
 			else:
 				leave_hours += published_hours
 		# rule for caluclating if weekday or weeknight payrate
-		# print(weeknight_hours)
-		# print(weekday_hours)
-		# print(weekend_hours)
 		temp_obj = None
 		# 1. when no weeknight and weekend hours (meaning that all hours are from mon-fri 06:00 to 18:00)
 		if (weeknight_hours == 0) and (weekend_hours == 0):
