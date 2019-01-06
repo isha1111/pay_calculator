@@ -2,7 +2,6 @@
 <script type="text/javascript" src="/static/js/index.js"></script>
 <link rel="stylesheet" type="text/css" href="/static/css/index.css">
 <div class="title" id="title">
-	<img src="/static/images/jmd_logo.png"></br>
 	${project}
 </div>
 <div class="hidden" id="calculated_data"></div>
