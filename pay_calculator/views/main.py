@@ -92,15 +92,15 @@ def calculate_payrate(request):
 			type_of_leave = None
 
 			if '-' in guard_shift_day:
-				guard_shift_day = datetime.strptime(guard_shift_day,'%Y-%m-%d').strftime('%d/%m/%Y')
+				guard_shift_day = datetime.strptime(guard_shift_day,'%Y-%m-%d').strftime('%m/%d/%Y')
 			else:
-				guard_shift_day = datetime.strptime(guard_shift_day,'%d/%m/%y').strftime('%d/%m/%Y')
+				guard_shift_day = datetime.strptime(guard_shift_day,'%d/%m/%y').strftime('%m/%d/%Y')
 			guard_start_time = shift['start_time']
 			guard_end_time = shift['end_time']
 			published_hours = shift['published_hours']
 
 			# check day
-			day, month, year = (int(x) for x in guard_shift_day.split('/'))   
+			month, day, year = (int(x) for x in guard_shift_day.split('/'))   
 			day_number = datetime(year, month, day).weekday()
 
 			if ':' in guard_start_time:
@@ -120,13 +120,13 @@ def calculate_payrate(request):
 
 
 				if second_day_hours != 0 :
-					format_str = '%d/%m/%Y'
+					format_str = '%m/%d/%Y'
 					first_day_obj = datetime.strptime(guard_shift_day,format_str).date()
 					second_day_obj = datetime.strptime(guard_shift_day,format_str).date() + timedelta(days=1)
 
 					# check for first day
 					guard_shift_day_first = guard_shift_day
-					guard_shift_day_second = second_day_obj.strftime('%d/%m/%y') #convert to string
+					guard_shift_day_second = second_day_obj.strftime('%m/%d/%y') #convert to string
 					
 					# calculate day and night shift time
 					night_hours = 0
@@ -170,7 +170,7 @@ def calculate_payrate(request):
 						public_holiday_hours += second_day_hours
 					else:
 						# calculate weekday weekend again
-						day, month, year = (int(x) for x in guard_shift_day_second.split('/'))   
+						month, day, year = (int(x) for x in guard_shift_day_second.split('/'))   
 						day_number = datetime(year, month, day).weekday()
 						second_night_hours = 0
 						if day_number in [0,1,2,3,4]:
