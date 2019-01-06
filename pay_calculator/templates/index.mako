@@ -1,7 +1,6 @@
 <%inherit file="layout.mako"/>
 <link rel="stylesheet" type="text/css" href="/static/css/index.css">
 <div class="title" id="title">
-	<img src="/static/images/jmd_logo.png"></br>
 	${project}
 </div>
 <div class="hidden" id="calculated_data"></div>
@@ -13,6 +12,15 @@
 </div>
 <div class="form">
 	<form enctype="multipart/form-data" action="/calculate_payrate" method="post">
+		<label>State</label>
+		<select name="state">
+			<option value="NSW">NSW</option>
+			<option value="VIC">VIC</option>
+			<option value="WA">WA</option>
+			<option value="ACT">ACT</option>
+			<option value="QLD">QLD</option>
+			<option value="SA">SA</option>
+		</select></br>
 		<label class="label">PLEASE UPLOAD FILE HERE:</label>
 		<input type="file" id="roaster_file" accept=".csv" name="roaster_data"></br>
 		<input type="submit" id="calculate_input" name="submit" value="CALCULATE PAY" >

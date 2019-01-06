@@ -26,7 +26,7 @@ class NswHolidays(holidays.Australia):
 
 @view_config(route_name='home', renderer='../templates/index.mako')
 def my_view(request):
-    return {'project': 'JMD PAY CALCULATOR','pay':''}
+    return {'project': 'PAY CALCULATOR','pay':''}
 
 @view_config(route_name='calculate_payrate', renderer='../templates/pay.mako')
 def calculate_payrate(request):
@@ -124,7 +124,7 @@ def calculate_payrate(request):
 				day_hours = 0
 
 				# public holiday
-				if guard_shift_day_first in NswHolidays(prov=state):
+				if guard_shift_day_first in holidays.CountryHoliday('AU', prov=state):
 					public_holiday_hours += first_day_hours
 				else:
 					total_published_hours += published_hours
@@ -157,7 +157,7 @@ def calculate_payrate(request):
 						weekend_hours += first_day_hours
 
 				# check for second day
-				if guard_shift_day_second in NswHolidays(prov=state):
+				if guard_shift_day_second in holidays.CountryHoliday('AU', prov=state):
 					public_holiday_hours += second_day_hours
 				else:
 					# calculate weekday weekend again
@@ -196,7 +196,7 @@ def calculate_payrate(request):
 			else:
 				first_day_hours = (guard_end_time_object - guard_start_time_object).total_seconds()/3600
 				# public holiday
-				if guard_shift_day in NswHolidays(prov=state):
+				if guard_shift_day in holidays.CountryHoliday('AU', prov=state):
 					# print(guard_shift_day)
 					public_holiday_hours += published_hours
 
@@ -303,4 +303,4 @@ def calculate_payrate(request):
 		temp_obj["total_amount"] = total_amount
 		pay[guard_name].append(temp_obj)
     
-	return {'project': 'JMD PAY CALCULATOR','pay':json.dumps(pay)}
+	return {'project': 'PAY CALCULATOR','pay':json.dumps(pay)}
