@@ -30,7 +30,7 @@ def my_view(request):
 
 @view_config(route_name='calculate_payrate', renderer='../templates/pay.mako')
 def calculate_payrate(request):
-	public_day_payrate = 47.46
+	public_day_payrate = 50.53
 	weekday_no_rotating_rate = 21
 	weekday_rotating_rate = 25
 
@@ -126,8 +126,7 @@ def calculate_payrate(request):
 
 					# check for first day
 					guard_shift_day_first = guard_shift_day
-					guard_shift_day_second = second_day_obj.strftime('%y/%m/%d') #convert to string
-					
+					guard_shift_day_second = second_day_obj.strftime('%Y/%m/%d') #convert to string
 					# calculate day and night shift time
 					night_hours = 0
 					day_hours = 0
@@ -136,8 +135,8 @@ def calculate_payrate(request):
 					# public holiday
 					if guard_shift_day_first in holidays.AU(prov=state):
 						public_holiday_hours += first_day_hours
-						first_day_pub_holiday= True
-						temp_total_published_hours = (published_hours - first_day_hours)
+						first_day_pub_holiday= True							
+						temp_total_published_hours = (published_hours - first_day_hours)				
 					else:
 						temp_total_published_hours = published_hours
 
@@ -170,10 +169,11 @@ def calculate_payrate(request):
 
 					# check for second day
 					if guard_shift_day_second in holidays.AU(prov=state):
-						public_holiday_hours += second_day_hours
 						if first_day_pub_holiday == False:
+							public_holiday_hours += second_day_hours
 							temp_total_published_hours = (published_hours - second_day_hours)
 						else:
+							public_holiday_hours += (published_hours - first_day_hours)
 							temp_total_published_hours = 0
 					else:
 						# calculate weekday weekend again
@@ -209,6 +209,10 @@ def calculate_payrate(request):
 							weekday = False
 							weekend_hours += second_day_hours
 
+					if guard_name == 'charanjeet singh':
+							print(guard_shift_day_first)
+							print(temp_total_published_hours)
+							print(public_holiday_hours)
 					total_published_hours += temp_total_published_hours
 				else:
 					first_day_hours = (guard_end_time_object - guard_start_time_object).total_seconds()/3600
@@ -271,7 +275,6 @@ def calculate_payrate(request):
 			temp_obj['weeknight_and_weekend_rotating_rate'] = 0
 			temp_obj['weekday_and_weeknight_and_weekend_rotating_rate'] = 0
 			temp_obj['leave_rate'] = leave_hours
-			print(total_published_hours)
 			total_amount += ((24.68 * total_published_hours)+ (20.21 * leave_hours))
 
 		# 3. when person work weeknight and weekday but no weekend

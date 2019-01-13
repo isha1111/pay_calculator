@@ -28,7 +28,7 @@ function ConvertToCSV(file_data) {
 			var pay_data = $( "#hidden_pay" ).html();
            	var file_data = JSON.parse(pay_data);
             var str = '';
-            var header = 'name,20.21,24.68,21.11,26.68,25.12,47.46,leave hours,total_amount\r\n';
+            var header = 'name,20.21,24.68,21.11,26.68,25.12,50.53,leave hours,total_amount\r\n';
             str += header;
             for (var i = 0; i < Object.keys(file_data).length; i++) {
                 var line = '';
@@ -56,7 +56,7 @@ function ConvertToCSV(file_data) {
 
 function DrawTable(file_data) {
 	var file_data = JSON.parse(file_data);
-	var str = "<table id='pay_table'><thead><tr><td>Guard Name</td><td>20.21</td><td>24.68</td><td>21.11</td><td>26.68</td><td>25.12</td><td>47.46</td><td>Leave hours</td><td>Total Amount</td></tr></thead><tbody>";
+	var str = "<table id='pay_table'><thead><tr><td>Guard Name</td><td>20.21</td><td>24.68</td><td>21.11</td><td>26.68</td><td>25.12</td><td>50.53</td><td>Leave hours</td><td>Total Amount</td></tr></thead><tbody>";
 	
 	for (var i = 0; i < Object.keys(file_data).length; i++) {
 			var guard_name = Object.keys(file_data)[i];
