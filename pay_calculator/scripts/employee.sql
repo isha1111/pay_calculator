@@ -1,0 +1,15 @@
+create table employee (
+	employee_id int NOT NULL, 
+	firstname varchar(255) NOT NULL, 
+	lastname varchar(255),
+	date_of_birth varchar(255),
+	gender varchar(255) NOT NULL,
+	mobile int NOT NULL,
+	email varchar(255) NOT NULL,
+	primary_role varchar(255),
+	secondary_role varchar(255),
+	primary_area varchar(255),
+	payrate_type varchar(255),
+	bsb int,
+	account int,
+	)

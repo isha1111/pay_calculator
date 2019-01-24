@@ -23,7 +23,7 @@
 		</select></br>
 		</br>
 		<label>Pay Type</label>
-		<select>
+		<select name="pay_type">
 			<option value="jmd_eba">JMD EBA</option>
 			<option value="awards">awards</option>
 			<option value="rss">RSS</option>
