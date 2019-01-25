@@ -7,7 +7,7 @@
 <div id="instructions" class="center">
 	<span class="warning">PLEASE NOTE FOLLOWING:</span></br>
 	<div id="instruction-points">
-		The <b>excel sheet headers</b> should be same as the one generated from Ento (including header - Officer full name, Published start date, Published start, Published end, Published actual hours, Published location name and so on ...)</br>
+		The <b>excel sheet headers should have extra column 'level' (with information on guard level eg 1,2..)</b> and the other columns should be same as the one generated from Ento (including header - Officer full name, Published start date, Published start, Published end, Published actual hours, Published location name and so on ...)</br>
 	</div>
 </div>
 <div class="form">
