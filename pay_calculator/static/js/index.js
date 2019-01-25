@@ -36,6 +36,7 @@ function download_data(){
 	}
 }
 
+
 function ConvertToCSV_rss() {
 		var pay_data = $( "#hidden_pay" ).html();
        	var file_data = JSON.parse(pay_data);
