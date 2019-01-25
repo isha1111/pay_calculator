@@ -27,7 +27,7 @@
 			<option value="jmd_eba">JMD EBA</option>
 			<option value="awards">awards</option>
 			<option value="rss">RSS</option>
-			<option value="flat_rate">flat rate</option>
+			// <option value="flat_rate">flat rate</option>
 		</select></br>
 		<label class="label">PLEASE UPLOAD FILE HERE:</label>
 		<input type="file" id="roaster_file" accept=".csv" name="roaster_data"></br>
