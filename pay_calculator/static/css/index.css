@@ -3,9 +3,97 @@ thead {
 	font-weight: bold;
 }
 
-body{
-	font-family: Arial , sans-serif;
+body {
+    font-family: "Open Sans",Helvetica,Helvetica,Arial,sans-serif;
+    font-weight: 400;
+    font-size: 15px;
+    line-height: 1.428571429;
+    color: #55605c;
 }
+
+.input{
+	margin-bottom: 10px
+}
+
+.col-lg-1, .col-lg-10, .col-lg-11, .col-lg-12, .col-lg-2, .col-lg-3, .col-lg-4, .col-lg-5, .col-lg-6, .col-lg-7, .col-lg-8, .col-lg-9, .col-md-1, .col-md-10, .col-md-11, .col-md-12, .col-md-2, .col-md-3, .col-md-4, .col-md-5, .col-md-6, .col-md-7, .col-md-8, .col-md-9, .col-sm-1, .col-sm-10, .col-sm-11, .col-sm-12, .col-sm-2, .col-sm-3, .col-sm-4, .col-sm-5, .col-sm-6, .col-sm-7, .col-sm-8, .col-sm-9, .col-xs-1, .col-xs-10, .col-xs-11, .col-xs-12, .col-xs-2, .col-xs-3, .col-xs-4, .col-xs-5, .col-xs-6, .col-xs-7, .col-xs-8, .col-xs-9, .input {
+    position: relative;
+    min-height: 1px;
+    padding-left: 12px;
+    padding-right: 12px;
+}
+
+.tab-page .hidden-tab.active {
+    display: block;
+}
+
+select{
+	height: 30px;
+	font-size: 14px !important;
+}
+
+.tab-page .horizontal .title, .tab-page .input {
+    width: 25%;
+}
+
+.panel {
+    float: left;
+    width: 100%;
+    border-color: transparent;
+    border-radius: 3px;
+    margin-bottom: 15px;
+    background-color: #fff;
+    border: 1px solid transparent;
+}
+
+.input .form-link, .input label {
+    color: #3d4542;
+    font-weight: 400;
+    margin-bottom: 10px;
+}
+
+.inline{
+	display: inline;
+}
+
+.pointer {
+	cursor: pointer;
+}
+
+.checkbox input[type=checkbox]+label:before,.select input[type=select]+label:before, .form-control, .input input[type=email], .input input[type=file], .input input[type=number], .input input[type=date], .input input[type=password], .input input[type=tel], .input input[type=text], .radio input[type=radio]+label:before, .switch input[type=checkbox]:empty~label:before, .ui-slider, textarea {
+    display: block;
+    width: 90%;
+    font-weight: 400;
+    height: 30px;
+    line-height: 18px;
+    padding: 8px;
+    font-size: 14px;
+    color: #444;
+    vertical-align: middle;
+    background-color: #fff;
+    border: solid 1px #eee;
+    border-color: #ccc #d7d7d7 #ddd;
+    border-radius: 3px;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,.05);
+    transition: border-color ease-in-out .15s,box-shadow ease-in-out .15s;
+}
+
+.row:after, .row:before {
+    content: " ";
+    display: table;
+}
+
+.row:after {
+    clear: both;
+}
+
+*, :after, :before {
+    box-sizing: border-box;
+}
+
+.inline{
+	display: inline;
+}
+
 td {
 	border: 1px solid black;
 }
@@ -46,6 +134,14 @@ td {
 	cursor: pointer;
 }
 
+#payslip_button, #leave_button{
+    display: block;
+    margin-bottom: 1em;
+    text-decoration: underline;
+    color: blue;
+    cursor: pointer;
+}
+
 #download_span {
     margin-top: 1em;
     text-align: center;
@@ -69,7 +165,8 @@ td {
 
 #title {
 	border: 4px solid;
-    padding-bottom: .5em;
+    padding-bottom: .25em;
+    padding-top: .25em;
 }
 #calculate_button, #download_button{
 	font-size: 1em;
@@ -86,8 +183,17 @@ td {
 .footer{
 	font-size: 0.85em;
 	border-top: 1px solid black;
-    margin-top: 2em;
     padding-top: 0.5em;
+    position: fixed;
+    bottom: 0px;
+    left: 0px;
+    right: 0px;
+    margin-bottom: 0px;
+    background-color: black;
+    color: white;
+    padding-bottom: .4em;
+    padding-right: 1.4em;
+    padding-left: 1.4em;
 }
 #pay_table{
     text-align: center;

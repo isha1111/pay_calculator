@@ -6,9 +6,16 @@ from datetime import timedelta
 import pandas as pd
 import json
 
-from dateutil.relativedelta import relativedelta as rd
-from dateutil.relativedelta import MO, TU, WE, TH, FR, SA, SU
+import math as Math
+
 import holidays
+import psycopg2
+from psycopg2 import extras
+
+from pay_calculator.models.holidays import Holidays
+
+
+### Assumption is made that fortnightly data is being processed ###
 
 def calculate_jmd_eba_rate(roaster_data, state):	
 	public_day_payrate = 50.53
@@ -98,7 +105,6 @@ def calculate_jmd_eba_rate(roaster_data, state):
 					first_day_hours = (guard_end_time_object - guard_start_time_object).total_seconds()/3600
 					second_day_hours = 0
 
-
 				if second_day_hours != 0 :
 					format_str = '%Y/%m/%d'
 					first_day_obj = datetime.strptime(guard_shift_day,format_str).date()
@@ -113,13 +119,12 @@ def calculate_jmd_eba_rate(roaster_data, state):
 					temp_total_published_hours = 0
 					first_day_pub_holiday = False
 					# public holiday
-					if guard_shift_day_first in holidays.AU(prov=state):
+					if datetime.strptime(guard_shift_day_first, '%Y/%m/%d').date() in Holidays.populate(state,year):
 						public_holiday_hours += first_day_hours
 						first_day_pub_holiday= True							
 						temp_total_published_hours = (published_hours - first_day_hours)				
 					else:
 						temp_total_published_hours = published_hours
-
 						if day_number in [0,1,2,3,4]:
 							weekday = True
 
@@ -142,13 +147,12 @@ def calculate_jmd_eba_rate(roaster_data, state):
 
 							weekday_hours += day_hours
 							weeknight_hours += night_hours
-
 						else:
 							weekday = False
 							weekend_hours += first_day_hours
 
 					# check for second day
-					if guard_shift_day_second in holidays.AU(prov=state):
+					if datetime.strptime(guard_shift_day_second, '%Y/%m/%d').date() in Holidays.populate(state,year):
 						if first_day_pub_holiday == False:
 							public_holiday_hours += second_day_hours
 							temp_total_published_hours = (published_hours - second_day_hours)
@@ -167,11 +171,11 @@ def calculate_jmd_eba_rate(roaster_data, state):
 							midnight_start_time = datetime.strptime('00:00:00', '%H:%M:%S')
 							if guard_end_time_object < white_collar_start_time: #start time shuld be 0
 								temp_night_hours = (guard_end_time_object - midnight_start_time).total_seconds()/3600
+								
 								second_night_hours += temp_night_hours
 								
 							else:
 								second_night_hours += 6
-								
 							# late hours
 							if guard_end_time_object > white_collar_end_time: #make end time 24
 								temp_night_hours = (guard_end_time_object - white_collar_end_time).total_seconds()/3600
@@ -188,11 +192,11 @@ def calculate_jmd_eba_rate(roaster_data, state):
 						else:
 							weekday = False
 							weekend_hours += second_day_hours
-
+					total_published_hours += temp_total_published_hours
 				else:
 					first_day_hours = (guard_end_time_object - guard_start_time_object).total_seconds()/3600
 					# public holiday
-					if guard_shift_day in holidays.AU(prov=state):
+					if datetime.strptime(guard_shift_day, '%Y/%m/%d').date() in Holidays.populate(state,year):
 						public_holiday_hours += published_hours
 
 					else:
@@ -298,9 +302,46 @@ def calculate_jmd_eba_rate(roaster_data, state):
 			total_amount += (public_holiday_hours * public_day_payrate)
 
 		temp_obj["total_amount"] = total_amount
+		temp_obj["tax"] = calculate_tax(total_amount)
+		temp_obj["super"] = calculate_super(total_amount)
+		temp_obj["annual_leave"] = calculate_annual_leave(total_published_hours + public_holiday_hours)
+		temp_obj["sick_leave"] = calculate_sick_leave(total_published_hours + public_holiday_hours)
+		temp_obj["net_pay"] = temp_obj["total_amount"] - temp_obj["tax"]
+		temp_obj["guard_shift_day"] = guard_shift_day
 		pay[guard_name].append(temp_obj)
-    
+    	
+	# save_payslip_data(pay,total_dates)
 	return json.dumps(pay)
+
+def calculate_tax(pay_amount):
+	# calculate for 52 weeks
+	num_of_fortnights = 26.07
+	yearly_salary = pay_amount * num_of_fortnights
+
+	# calculate tax bracket and deductions
+	if yearly_salary <= 18200:
+		fortnightly_calculated_tax = 0
+	elif (yearly_salary >= 18201) and(yearly_salary <= 37000):
+		taxed_salary = yearly_salary - 18200
+		yearly_calculated_tax = 0.19 * taxed_salary
+		fortnightly_calculated_tax = yearly_calculated_tax / num_of_fortnights
+	elif (yearly_salary >= 37001) and(yearly_salary <= 90000):
+		fixed_tax = 3572
+		taxed_salary = yearly_salary - 37000
+		yearly_calculated_tax = (.325 * taxed_salary) + fixed_tax
+		fortnightly_calculated_tax = yearly_calculated_tax / num_of_fortnights
+	elif (yearly_salary >= 90001) and(yearly_salary <= 	180000):
+		fixed_tax = 20797
+		taxed_salary = yearly_salary - 90000
+		yearly_calculated_tax = (.37 * taxed_salary) + fixed_tax
+		fortnightly_calculated_tax = yearly_calculated_tax /num_of_fortnights
+	elif (yearly_salary >= 180001):
+		fixed_tax = 54097
+		taxed_salary = yearly_salary - 180000
+		yearly_calculated_tax = (.45 * taxed_salary) + fixed_tax
+		fortnightly_calculated_tax = yearly_calculated_tax / num_of_fortnights
+	return fortnightly_calculated_tax
+
 
 def calculate_awards_rate(roaster_data, state):
 
@@ -444,7 +485,7 @@ def calculate_awards_rate(roaster_data, state):
 					day_hours = 0
 					temp_total_published_hours = 0
 					first_day_pub_holiday = False
-					if guard_shift_day_first in holidays.AU(prov=state):
+					if datetime.strptime(guard_shift_day_first, '%Y/%m/%d').date() in Holidays.populate(state,year):
 						public_holiday_hours += first_day_hours
 						first_day_pub_holiday= True							
 					else:
@@ -475,7 +516,7 @@ def calculate_awards_rate(roaster_data, state):
 							sunday_hours += first_day_hours
 
 					# check for second day
-					if guard_shift_day_second in holidays.AU(prov=state):
+					if datetime.strptime(guard_shift_day_second, '%Y/%m/%d').date() in Holidays.populate(state,year):
 						if first_day_pub_holiday == False:
 							public_holiday_hours += second_day_hours
 						else:
@@ -521,7 +562,7 @@ def calculate_awards_rate(roaster_data, state):
 					first_day_hours = (guard_end_time_object - guard_start_time_object).total_seconds()/3600	
 					temp_night_hours = 0					
 					# public holiday
-					if guard_shift_day in holidays.AU(prov=state):
+					if datetime.strptime(guard_shift_day, '%Y/%m/%d').date() in Holidays.populate(state,year):
 						public_holiday_hours += published_hours
 					else:
 						if day_number in [0,1,2,3,4]:
@@ -562,8 +603,14 @@ def calculate_awards_rate(roaster_data, state):
 		temp_obj['public_holiday_hours'] = round(public_holiday_hours,2)
 		temp_obj['night_span_hours'] = round(night_span_hours,2)
 		temp_obj['leave_hours'] = leave_hours
-		total_pay = (hourly_hours * hourly_pay_rate) + (saturday_hours * saturday_rate) + (sunday_hours * sunday_rate) + (public_holiday_hours * public_holiday_rate) + (night_span_hours * mon_fri_night_span_rate)
+		total_pay = (hourly_hours * hourly_pay_rate) + (saturday_hours * saturday_rate) + (sunday_hours * sunday_rate) + (public_holiday_hours * public_holiday_rate) + (night_span_hours * mon_fri_night_span_rate) + (20.21 * leave_hours)
 		temp_obj["total_amount"] = total_pay
+		temp_obj["tax"] = calculate_tax(total_pay)
+		temp_obj["super"] = calculate_super(total_pay)
+		total_worked_hours = hourly_hours + saturday_hours + sunday_hours + public_holiday_hours +night_span_hours
+		temp_obj["annual_leave"] = calculate_annual_leave(total_worked_hours)
+		temp_obj["sick_leave"] = calculate_sick_leave(total_worked_hours)
+		temp_obj["net_pay"] = temp_obj["total_amount"] - temp_obj["tax"]
 		pay[guard_name].append(temp_obj)
 	return json.dumps(pay)
 
@@ -719,8 +766,208 @@ def calculate_rss_rate(roaster_data, state):
 		temp_obj['weekday_hours'] = round(weekday_hours,2)
 		temp_obj['weekend_hours'] = round(weekend_hours,2)
 		temp_obj['leave_hours'] = leave_hours
-		total_pay = (weekday_rate * weekday_hours) + (weekend_rate * weekend_hours)
+		total_pay = (weekday_rate * weekday_hours) + (weekend_rate * weekend_hours) + (20.21 * leave_hours)
 		temp_obj['total_amount'] = total_pay
+		temp_obj["tax"] = calculate_tax(total_pay)
+		total_worked_hours = weekday_hours + weekend_hours
+		temp_obj["annual_leave"] = calculate_annual_leave(total_worked_hours)
+		temp_obj["sick_leave"] = calculate_sick_leave(total_worked_hours)
+		temp_obj["net_pay"] = temp_obj["total_amount"] - temp_obj["tax"]
+		temp_obj["super"] = calculate_super(total_pay)
 		pay[guard_name].append(temp_obj)
-	print(pay)
 	return json.dumps(pay)
+
+def calculate_super(pay_amount):
+	super = pay_amount * .095
+	return super
+
+def calculate_annual_leave(worked_hours):
+	# calculate annual leave for 80 hours
+	calculate_leave = .076 * worked_hours	
+	return calculate_leave
+
+def calculate_sick_leave(worked_hours):
+	# calculate sick leave for 80 hours
+	calculate_leave = .038 * worked_hours
+	return calculate_leave
+
+def save_leave_data(pay):
+	conn = psycopg2.connect('postgres://lrfdzdjpnximyq:3f1ddb578e598f054626ac0754752cb27d27d14e492aaab2a3b71dcdf50d4265@ec2-54-235-77-0.compute-1.amazonaws.com:5432/dvq1qp8vsr5hr'
+, sslmode='require')
+	cursor = conn.cursor()
+
+	values_list = []
+	new_employees = []
+	updated_firstname = []
+	rows = []
+
+	all_firstnames = []
+	db_firstnames = []
+	db_al = []
+	db_sl = []
+
+	# first create new employees
+	for key in pay:
+		first_name = key
+		all_firstnames.append(first_name)
+
+	cursor.execute('select firstname, annual_leave,sick_leave from employees where firstname in %(all_firstnames)s ',{'all_firstnames':tuple(all_firstnames)})
+	result = cursor.fetchall()
+
+	for row in result:
+		db_firstnames.append(row[0])
+		db_al.append(row[1])
+		db_sl.append(row[2])
+
+	# check what employees not in database
+	for key in pay:
+		first_name = key
+		al = pay[key][0]['annual_leave']
+		sl = pay[key][0]['sick_leave']
+		if first_name not in db_firstnames:
+			values = (first_name,al,sl)
+			values_list.append(values)
+		else:
+			updated_firstname.append(first_name)
+			index = db_firstnames.index(first_name)
+			annual_leave_calculated = float(db_al[index] + al)
+			sick_leave_calculated = float(db_sl[index] + sl)
+			temp_obj = {}
+			temp_obj["fname"] = first_name
+			temp_obj["al"]= annual_leave_calculated
+			temp_obj["sl"] = sick_leave_calculated
+			rows.append(temp_obj)
+
+	if len(values_list) != 0:	
+		extras.execute_values(cursor,"insert into employees (firstname,annual_leave,sick_leave) values %s", values_list)
+		conn.commit()
+
+	if len(updated_firstname) != 0:
+		print(rows)
+		# now check for remainder employees
+		cursor.executemany("update employees set annual_leave = %(al)s, sick_leave = %(sl)s where firstname = %(fname)s",tuple(rows))
+		conn.commit()
+
+	cursor.close()
+	conn.close()
+
+def save_payslip_data(pay,dates):
+	dates = list(set(dates))
+
+	fortnight_start = min(dates);
+	fortnight_end = max(dates);		
+	
+	conn = psycopg2.connect('postgres://lrfdzdjpnximyq:3f1ddb578e598f054626ac0754752cb27d27d14e492aaab2a3b71dcdf50d4265@ec2-54-235-77-0.compute-1.amazonaws.com:5432/dvq1qp8vsr5hr'
+, sslmode='require')
+	cursor = conn.cursor()
+
+	values_list = []
+	for key in pay:
+		first_name = key
+		gross_pay = pay[key][0]['total_amount']
+		net_pay = pay[key][0]['net_pay']
+		super_amount = pay[key][0]['super']
+		tax = pay[key][0]['tax']
+		values = (first_name,'',fortnight_start,fortnight_end,gross_pay,net_pay,tax,super_amount)
+		values_list.append(values)
+	extras.execute_values(cursor,"insert into payslip (firstname, lastname, fortnight_start, fortnight_end, gross_pay, net_pay, tax, super) VALUES %s", values_list)
+	conn.commit()
+
+	# update ytd and create ytd if not there
+	# check if ytd row exist for employee and year
+	year_start = fortnight_start.split("/")[0]
+	year_end = fortnight_end.split("/")[0]
+	year_start1 = ''
+
+	if year_start == year_end:
+		ytd_date = '30/6/'+year_end
+		# 1. when start date > 30 Jun
+		if(fortnight_start >= ytd_date):
+			year_end = year_end + 1
+		# 2. when end date < 30 Jun
+		elif(fortnight_end <= ytd_date):
+			year_start = year_start - 1
+		else:
+			# need to split forntnight ytd
+			year_start1 = (year_start - 1)
+			year_end1 = year_end
+
+			year_start2 = year_start
+			year_end2 = (year_end + 1)
+
+	if year_start1 == '':
+		# get the exsiting ytd data
+		for key in pay:
+			first_name = key
+			gross_pay = pay[key][0]['total_amount']
+			net_pay = pay[key][0]['net_pay']
+			super_amount = pay[key][0]['super']
+			tax = pay[key][0]['tax']
+			cursor.execute("select ytd_id,pay,tax,super_amount from ytd left join employees on ytd.employee_id = employees.employee_id where employees.firstname = %s and ytd.start_year = %s", (first_name,year_start))
+			result = cursor.fetchone()
+			print(result)
+		# if not present create ytd data
+			if result is None:
+				# create
+				cursor.execute("select employee_id from employees where firstname = %s",(first_name,))
+				employee_id = cursor.fetchone()
+				cursor.execute("insert into ytd (employee_id,start_year,end_year,pay,tax,super_amount) values (%s,%s,%s,%s,%s,%s)",(employee_id,year_start,year_end,net_pay,tax,super_amount))
+			else:
+				# update
+				new_pay = result[1] + net_pay
+				new_tax = result[2] + tax
+				new_super = result[3] + super_amount
+				cursor.execute("update ytd set pay = %s, tax = %s, super_amount = %s where ytd_id = %s", (new_pay,new_tax,new_super,result[0]))
+			conn.commit()
+
+	else:
+		# get the exsiting ytd data for year start1
+		for key in pay:
+			first_name = key
+			gross_pay = pay[key][0]['total_amount']
+			net_pay = pay[key][0]['net_pay']
+			super_amount = pay[key][0]['super']
+			tax = pay[key][0]['tax']
+			cursor.execute("select ytd_id,pay,tax,super_amount from ytd left join employees on ytd.employee_id = employees.employee_id where employees.firstname = %s and ytd.start_year = %s", (first_name,year_start1))
+			result = cursor.fetchone()
+
+			if result is None:
+				# create
+				cursor.execute("select employee_id from employees where firstname = %s",(first_name,))
+				employee_id = cursor.fetchone()
+				cursor.execute("insert into ytd (employee_id,start_year,end_year,pay,tax,super_amount) values (%s,%s,%s,%s,%s,%s)",(employee_id,year_start1,year_end1,(net_pay/2),(tax/2),(super_amount/2)))
+			else:
+				# update
+				new_pay = result[1] + (net_pay/2)
+				new_tax = result[2] + (tax/2)
+				new_super = result[3] + (super_amount/2)
+				cursor.execute("update ytd set pay = %s, tax = %s, super_amount = %s where ytd_id = %s", ((new_pay),new_tax,new_super,result[0]))
+			conn.commit()
+
+		# get the exsiting ytd data for year start2
+		for key in pay:
+			first_name = key
+			gross_pay = pay[key][0]['total_amount']
+			net_pay = pay[key][0]['net_pay']
+			super_amount = pay[key][0]['super']
+			tax = pay[key][0]['tax']
+			cursor.execute("select ytd_id,pay,tax,super_amount from ytd left join employees on ytd.employee_id = employees.employee_id where employees.firstname = %s and ytd.start_year = %s", (first_name,year_start2))
+			result = cursor.fetchone()
+
+			if result is None:
+				# create
+				cursor.execute("select employee_id from employees where firstname = %s",(first_name,))
+				employee_id = cursor.fetchone()
+				cursor.execute("insert into ytd (employee_id,start_year,end_year,pay,tax,super_amount) values (%s,%s,%s,%s,%s,%s)",(employee_id,year_start2,year_end2,(net_pay/2),(tax/2),(super_amount/2)))
+			else:
+				# update
+				new_pay = result[1] + (net_pay/2)
+				new_tax = result[2] + (tax/2)
+				new_super = result[3] + (super_amount/2)
+				cursor.execute("update ytd set pay = %s, tax = %s, super_amount = %s where ytd_id = %s", ((new_pay),new_tax,new_super,result[0]))
+			conn.commit()
+
+	cursor.close()
+	conn.close()
+	
+

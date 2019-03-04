@@ -14,6 +14,8 @@
 	<span id="download_text" >Download CSV</span>
 	
 </span>
+<span id="leave_button" href="/" class="center" onclick="generate_and_save_leave()">Generate Leave</span>
+<span id="payslip_button" href="/" class="center" onclick="generate_and_save_payslip()">Generate payslip</span>
 
 <div id="hidden_pay" class="hidden"> 
 ${pay}

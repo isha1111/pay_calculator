@@ -16,7 +16,8 @@ requires = [
     'waitress',
     'holidays',
     'pandas',
-    'openpyxl'
+    'openpyxl',
+    'psycopg2-binary'
 ]
 
 tests_require = [

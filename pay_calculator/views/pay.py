@@ -1,5 +1,6 @@
 from pyramid.view import view_config
 from pay_calculator.models import pay_model as Pay
+import json
 
 @view_config(route_name='home', renderer='../templates/index.mako')
 def my_view(request):
@@ -26,3 +27,22 @@ def calculate_payrate(request):
 	if pay_type == 'rss':
 		pay = Pay.calculate_rss_rate(roaster_data, state)
 		return {'project': 'PAY CALCULATOR','pay':pay,'pay_type':'rss'}
+
+@view_config(route_name='save_payslip', renderer='string')
+def save_payslip(request):
+	pay = request.POST['payslip_data']
+	pay = json.loads(pay)
+	dates = []
+	for guard in pay:
+		dates.append(pay[guard][0]['guard_shift_day'])
+
+	Pay.save_payslip_data(pay,dates)
+	return "abc"
+
+@view_config(route_name='save_leave', renderer='string')
+def save_leave(request):
+	pay = request.POST['payslip_data']
+	pay = json.loads(pay)
+
+	Pay.save_leave_data(pay)
+	return "abc"

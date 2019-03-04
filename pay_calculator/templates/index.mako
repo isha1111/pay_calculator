@@ -1,5 +1,4 @@
 <%inherit file="layout.mako"/>
-<link rel="stylesheet" type="text/css" href="/static/css/index.css">
 <div class="title" id="title">
 	${project}
 </div>
@@ -27,10 +26,9 @@
 			<option value="jmd_eba">JMD EBA</option>
 			<option value="awards">awards</option>
 			<option value="rss">RSS</option>
-			// <option value="flat_rate">flat rate</option>
 		</select></br>
 		<label class="label">PLEASE UPLOAD FILE HERE:</label>
-		<input type="file" id="roaster_file" accept=".csv" name="roaster_data"></br>
+		<input type="file" id="roaster_file"  name="roaster_data"></br>
 		<input type="submit" id="calculate_input" name="submit" value="CALCULATE PAY" >
 	</form>
 </div>
