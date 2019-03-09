@@ -882,6 +882,7 @@ def save_payslip_data(pay,dates):
 	year_end = fortnight_end.split("/")[0]
 	year_start1 = ''
 	values_list_ytd = []
+	values_list_ytd1 = []
 	rows = []
 
 	if year_start == year_end:
@@ -1008,7 +1009,7 @@ def save_payslip_data(pay,dates):
 			if first_name not in db_firstname1:
 				e_id = employee_to_id[first_name]
 				values = (e_id,year_start,year_end,net_pay,tax,super_amount)
-				values_list_ytd.append(values)
+				values_list_ytd1.append(values)
 			else:
 				temp_obj = {}
 				index = db_firstname1.index(first_name)
@@ -1021,8 +1022,8 @@ def save_payslip_data(pay,dates):
 				rows.append(temp_obj)
 
 		# create
-		if len(values_list_ytd) != 0:	
-			extras.execute_values(cursor,"insert into ytd (employee_id,start_year,end_year,pay,tax,super_amount) values %s", values_list_ytd)
+		if len(values_list_ytd1) != 0:	
+			extras.execute_values(cursor,"insert into ytd (employee_id,start_year,end_year,pay,tax,super_amount) values %s", values_list_ytd1)
 			conn.commit()
 
 		# update
