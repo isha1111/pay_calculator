@@ -855,7 +855,9 @@ def save_payslip_data(pay,dates):
 	dates = list(set(dates))
 
 	fortnight_start = min(dates);
-	fortnight_end = max(dates);		
+	fortnight_end = max(dates);	
+
+	firstname_list = []	
 	
 	conn = psycopg2.connect('postgres://lrfdzdjpnximyq:3f1ddb578e598f054626ac0754752cb27d27d14e492aaab2a3b71dcdf50d4265@ec2-54-235-77-0.compute-1.amazonaws.com:5432/dvq1qp8vsr5hr'
 , sslmode='require')
@@ -864,6 +866,7 @@ def save_payslip_data(pay,dates):
 	values_list = []
 	for key in pay:
 		first_name = key
+		firstname_list.append(first_name)
 		gross_pay = pay[key][0]['total_amount']
 		net_pay = pay[key][0]['net_pay']
 		super_amount = pay[key][0]['super']
@@ -878,6 +881,8 @@ def save_payslip_data(pay,dates):
 	year_start = fortnight_start.split("/")[0]
 	year_end = fortnight_end.split("/")[0]
 	year_start1 = ''
+	values_list_ytd = []
+	rows = []
 
 	if year_start == year_end:
 		ytd_date = '30/6/'+year_end
@@ -897,51 +902,132 @@ def save_payslip_data(pay,dates):
 
 	if year_start1 == '':
 		# get the exsiting ytd data
+		cursor.execute("select ytd.ytd_id,ytd.pay,ytd.tax,ytd.super_amount, employees.firstname from ytd left join employees on ytd.employee_id = employees.employee_id where employees.firstname in %s and ytd.start_year = %s", (tuple(firstname_list),year_start))
+		result = cursor.fetchall()
+
+		db_ytd_id = []
+		db_pay = []
+		db_tax = []
+		db_super = []
+		db_firstname =[]
+		not_db_firstname = []
+
+		for row in result:
+			db_ytd_id.append(row[0])
+			db_pay.append(row[1])
+			db_tax.append(row[2])
+			db_super.append(row[3])
+			db_firstname.append(row[4])
+
+		for key in pay:
+			fname = key
+			if fname not in db_firstname:
+				not_db_firstname.append(fname)
+
+		cursor.execute("select employee_id,firstname from employees where firstname in %s",(tuple(not_db_firstname),))
+		result = cursor.fetchall()
+
+		employee_to_id = {}
+
+		for row in result:
+			employee_to_id[row[1]]=row[0]
+
 		for key in pay:
 			first_name = key
 			gross_pay = pay[key][0]['total_amount']
 			net_pay = pay[key][0]['net_pay']
 			super_amount = pay[key][0]['super']
 			tax = pay[key][0]['tax']
-			cursor.execute("select ytd_id,pay,tax,super_amount from ytd left join employees on ytd.employee_id = employees.employee_id where employees.firstname = %s and ytd.start_year = %s", (first_name,year_start))
-			result = cursor.fetchone()
-			print(result)
+
 		# if not present create ytd data
-			if result is None:
-				# create
-				cursor.execute("select employee_id from employees where firstname = %s",(first_name,))
-				employee_id = cursor.fetchone()
-				cursor.execute("insert into ytd (employee_id,start_year,end_year,pay,tax,super_amount) values (%s,%s,%s,%s,%s,%s)",(employee_id,year_start,year_end,net_pay,tax,super_amount))
+			if first_name not in db_firstname:
+				e_id = employee_to_id[first_name]
+				values = (e_id,year_start,year_end,net_pay,tax,super_amount)
+				values_list_ytd.append(values)
 			else:
-				# update
-				new_pay = result[1] + net_pay
-				new_tax = result[2] + tax
-				new_super = result[3] + super_amount
-				cursor.execute("update ytd set pay = %s, tax = %s, super_amount = %s where ytd_id = %s", (new_pay,new_tax,new_super,result[0]))
+				temp_obj = {}
+				index = db_firstname.index(first_name)
+				temp_obj["ytd_id"] = db_ytd_id[index]
+				temp_obj["year_start"] = year_start
+				temp_obj["year_end"]= year_end
+				temp_obj["net_pay"] = float(db_pay[index] + net_pay)
+				temp_obj["tax"] = float(db_tax[index] + tax)
+				temp_obj["super_amount"] = float(db_super[index] + super_amount)
+				rows.append(temp_obj)
+
+		# create
+		if len(values_list_ytd) != 0:	
+			extras.execute_values(cursor,"insert into ytd (employee_id,start_year,end_year,pay,tax,super_amount) values %s", values_list_ytd)
+			conn.commit()
+
+		# update
+		if len(rows) != 0:
+			cursor.executemany("update ytd set pay = %(net_pay)s, tax = %(tax)s, super_amount = %(super_amount)s where ytd_id = %()s", tuple(rows))
 			conn.commit()
 
 	else:
 		# get the exsiting ytd data for year start1
+		cursor.execute("select ytd_id,pay,tax,super_amount from ytd left join employees on ytd.employee_id = employees.employee_id where employees.firstname in %s and ytd.start_year = %s", (tuple(firstname_list),year_start1))
+		result = cursor.fetchall()
+
+		db_ytd_id1 = []
+		db_pay1 = []
+		db_tax1 = []
+		db_super1 = []
+		db_firstname1 =[]
+		not_db_firstname1 = []
+
+		for row in result:
+			db_ytd_id1.append(row[0])
+			db_pay1.append(row[1])
+			db_tax1.append(row[2])
+			db_super1.append(row[3])
+			db_firstname1.append(row[4])
+
+		for key in pay:
+			fname = key
+			if fname not in db_firstname1:
+				not_db_firstname1.append(fname)
+
+		cursor.execute("select employee_id,firstname from employees where firstname in %s",(tuple(not_db_firstname1),))
+		result = cursor.fetchall()
+
+		employee_to_id = {}
+
+		for row in result:
+			employee_to_id[row[1]]=row[0]
+
 		for key in pay:
 			first_name = key
 			gross_pay = pay[key][0]['total_amount']
 			net_pay = pay[key][0]['net_pay']
 			super_amount = pay[key][0]['super']
 			tax = pay[key][0]['tax']
-			cursor.execute("select ytd_id,pay,tax,super_amount from ytd left join employees on ytd.employee_id = employees.employee_id where employees.firstname = %s and ytd.start_year = %s", (first_name,year_start1))
-			result = cursor.fetchone()
 
-			if result is None:
-				# create
-				cursor.execute("select employee_id from employees where firstname = %s",(first_name,))
-				employee_id = cursor.fetchone()
-				cursor.execute("insert into ytd (employee_id,start_year,end_year,pay,tax,super_amount) values (%s,%s,%s,%s,%s,%s)",(employee_id,year_start1,year_end1,(net_pay/2),(tax/2),(super_amount/2)))
+		# if not present create ytd data
+			if first_name not in db_firstname1:
+				e_id = employee_to_id[first_name]
+				values = (e_id,year_start,year_end,net_pay,tax,super_amount)
+				values_list_ytd.append(values)
 			else:
-				# update
-				new_pay = result[1] + (net_pay/2)
-				new_tax = result[2] + (tax/2)
-				new_super = result[3] + (super_amount/2)
-				cursor.execute("update ytd set pay = %s, tax = %s, super_amount = %s where ytd_id = %s", ((new_pay),new_tax,new_super,result[0]))
+				temp_obj = {}
+				index = db_firstname1.index(first_name)
+				temp_obj["ytd_id"] = db_ytd_id1[index]
+				temp_obj["year_start"] = year_start1
+				temp_obj["year_end"]= year_end1
+				temp_obj["net_pay"] = float(db_pay1[index] + net_pay)
+				temp_obj["tax"] = float(db_tax1[index] + tax)
+				temp_obj["super_amount"] = float(db_super1[index] + super_amount)
+				rows.append(temp_obj)
+
+		# create
+		if len(values_list_ytd) != 0:	
+			extras.execute_values(cursor,"insert into ytd (employee_id,start_year,end_year,pay,tax,super_amount) values %s", values_list_ytd)
+			conn.commit()
+
+		# update
+		if len(rows) != 0:
+			cursor.executemany("update ytd set pay = %(net_pay)s, tax = %(tax)s, super_amount = %(super_amount)s where ytd_id = %()s", tuple(rows))
 			conn.commit()
 
 		# get the exsiting ytd data for year start2
