@@ -6,3 +6,8 @@ def includeme(config):
 	config.add_route('employee_save','/employee_save')
 	config.add_route('save_payslip','/save_payslip')
 	config.add_route('save_leave','/save_leave')
+	config.add_route('send_guard_reminder','/send_guard_reminder')
+	config.add_route('send_email_to_guards','/send_email_to_guards')
+	config.add_route('save_bulk_employee','/save_bulk_employee')
+	config.add_route('search_employee','/search_employee')
+	config.add_route('fetch_employee','/fetch_employee')

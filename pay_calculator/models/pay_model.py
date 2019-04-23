@@ -12,6 +12,14 @@ import holidays
 import psycopg2
 from psycopg2 import extras
 
+import os
+import pdfrw
+
+from urllib.request import urlopen
+from urllib.request import Request
+from io import StringIO, BytesIO
+import PyPDF2 
+
 from pay_calculator.models.holidays import Holidays
 
 
@@ -843,7 +851,6 @@ def save_leave_data(pay):
 		conn.commit()
 
 	if len(updated_firstname) != 0:
-		print(rows)
 		# now check for remainder employees
 		cursor.executemany("update employees set annual_leave = %(al)s, sick_leave = %(sl)s where firstname = %(fname)s",tuple(rows))
 		conn.commit()
@@ -854,8 +861,8 @@ def save_leave_data(pay):
 def save_payslip_data(pay,dates):
 	dates = list(set(dates))
 
-	fortnight_start = min(dates);
-	fortnight_end = max(dates);	
+	fortnight_start = min(dates)
+	fortnight_end = max(dates)
 
 	firstname_list = []	
 	
@@ -883,6 +890,7 @@ def save_payslip_data(pay,dates):
 	year_start1 = ''
 	values_list_ytd = []
 	values_list_ytd1 = []
+	values_list_ytd2 = []
 	rows = []
 
 	if year_start == year_end:
@@ -915,9 +923,9 @@ def save_payslip_data(pay,dates):
 
 		for row in result:
 			db_ytd_id.append(row[0])
-			db_pay.append(row[1])
-			db_tax.append(row[2])
-			db_super.append(row[3])
+			db_pay.append(float(row[1]))
+			db_tax.append(float(row[2]))
+			db_super.append(float(row[3]))
 			db_firstname.append(row[4])
 
 		for key in pay:
@@ -925,25 +933,26 @@ def save_payslip_data(pay,dates):
 			if fname not in db_firstname:
 				not_db_firstname.append(fname)
 
-		cursor.execute("select employee_id,firstname from employees where firstname in %s",(tuple(not_db_firstname),))
-		result = cursor.fetchall()
-
 		employee_to_id = {}
 
-		for row in result:
-			employee_to_id[row[1]]=row[0]
+		if len(not_db_firstname) != 0:		
+			cursor.execute("select employee_id,firstname from employees where firstname in %s",(tuple(not_db_firstname),))
+			result = cursor.fetchall()
+
+			for row in result:
+				employee_to_id[row[1]]=row[0]
 
 		for key in pay:
 			first_name = key
-			gross_pay = pay[key][0]['total_amount']
-			net_pay = pay[key][0]['net_pay']
-			super_amount = pay[key][0]['super']
-			tax = pay[key][0]['tax']
+			gross_pay = pay[key][0]['total_amount']/2
+			net_pay = pay[key][0]['net_pay']/2
+			super_amount = pay[key][0]['super']/2
+			tax = pay[key][0]['tax']/2
 
 		# if not present create ytd data
 			if first_name not in db_firstname:
 				e_id = employee_to_id[first_name]
-				values = (e_id,year_start,year_end,net_pay,tax,super_amount)
+				values = (e_id,year_start,year_end,gross_pay,tax,super_amount)
 				values_list_ytd.append(values)
 			else:
 				temp_obj = {}
@@ -951,7 +960,7 @@ def save_payslip_data(pay,dates):
 				temp_obj["ytd_id"] = db_ytd_id[index]
 				temp_obj["year_start"] = year_start
 				temp_obj["year_end"]= year_end
-				temp_obj["net_pay"] = float(db_pay[index] + net_pay)
+				temp_obj["gross_pay"] = float(db_pay[index] + gross_pay)
 				temp_obj["tax"] = float(db_tax[index] + tax)
 				temp_obj["super_amount"] = float(db_super[index] + super_amount)
 				rows.append(temp_obj)
@@ -963,26 +972,19 @@ def save_payslip_data(pay,dates):
 
 		# update
 		if len(rows) != 0:
-			cursor.executemany("update ytd set pay = %(net_pay)s, tax = %(tax)s, super_amount = %(super_amount)s where ytd_id = %()s", tuple(rows))
+			cursor.executemany("update ytd set pay = %(gross_pay)s, tax = %(tax)s, super_amount = %(super_amount)s where ytd_id = %(ytd_id)s", tuple(rows))
 			conn.commit()
 
 	else:
 		# get the exsiting ytd data for year start1
-		cursor.execute("select ytd_id,pay,tax,super_amount from ytd left join employees on ytd.employee_id = employees.employee_id where employees.firstname in %s and ytd.start_year = %s", (tuple(firstname_list),year_start1))
+		cursor.execute("select ytd.ytd_id,ytd.pay,ytd.tax,ytd.super_amount, employees.firstname from ytd left join employees on ytd.employee_id = employees.employee_id where employees.firstname in %s and ytd.start_year = %s", (tuple(firstname_list),year_start1))
 		result = cursor.fetchall()
-
-		db_ytd_id1 = []
-		db_pay1 = []
-		db_tax1 = []
-		db_super1 = []
-		db_firstname1 =[]
-		not_db_firstname1 = []
 
 		for row in result:
 			db_ytd_id1.append(row[0])
-			db_pay1.append(row[1])
-			db_tax1.append(row[2])
-			db_super1.append(row[3])
+			db_pay1.append(float(row[1]))
+			db_tax1.append(float(row[2]))
+			db_super1.append(float(row[3]))
 			db_firstname1.append(row[4])
 
 		for key in pay:
@@ -1008,15 +1010,18 @@ def save_payslip_data(pay,dates):
 		# if not present create ytd data
 			if first_name not in db_firstname1:
 				e_id = employee_to_id[first_name]
-				values = (e_id,year_start,year_end,net_pay,tax,super_amount)
-				values_list_ytd1.append(values)
+				values1 = (e_id,year_start1,year_end1,gross_pay,tax,super_amount)
+				values_list_ytd1.append(values1)
+				values2 = (e_id,year_start2,year_end2,gross_pay,tax,super_amount)
+				values_list_ytd2.append(values2)
+
 			else:
 				temp_obj = {}
 				index = db_firstname1.index(first_name)
 				temp_obj["ytd_id"] = db_ytd_id1[index]
 				temp_obj["year_start"] = year_start1
 				temp_obj["year_end"]= year_end1
-				temp_obj["net_pay"] = float(db_pay1[index] + net_pay)
+				temp_obj["gross_pay"] = float(db_pay1[index] + gross_pay)
 				temp_obj["tax"] = float(db_tax1[index] + tax)
 				temp_obj["super_amount"] = float(db_super1[index] + super_amount)
 				rows.append(temp_obj)
@@ -1028,33 +1033,48 @@ def save_payslip_data(pay,dates):
 
 		# update
 		if len(rows) != 0:
-			cursor.executemany("update ytd set pay = %(net_pay)s, tax = %(tax)s, super_amount = %(super_amount)s where ytd_id = %()s", tuple(rows))
+			cursor.executemany("update ytd set pay = %(gross_pay)s, tax = %(tax)s, super_amount = %(super_amount)s where ytd_id = %(ytd_id)s", tuple(rows))
 			conn.commit()
 
 		# get the exsiting ytd data for year start2
-		for key in pay:
-			first_name = key
-			gross_pay = pay[key][0]['total_amount']
-			net_pay = pay[key][0]['net_pay']
-			super_amount = pay[key][0]['super']
-			tax = pay[key][0]['tax']
-			cursor.execute("select ytd_id,pay,tax,super_amount from ytd left join employees on ytd.employee_id = employees.employee_id where employees.firstname = %s and ytd.start_year = %s", (first_name,year_start2))
-			result = cursor.fetchone()
-
-			if result is None:
-				# create
-				cursor.execute("select employee_id from employees where firstname = %s",(first_name,))
-				employee_id = cursor.fetchone()
-				cursor.execute("insert into ytd (employee_id,start_year,end_year,pay,tax,super_amount) values (%s,%s,%s,%s,%s,%s)",(employee_id,year_start2,year_end2,(net_pay/2),(tax/2),(super_amount/2)))
-			else:
-				# update
-				new_pay = result[1] + (net_pay/2)
-				new_tax = result[2] + (tax/2)
-				new_super = result[3] + (super_amount/2)
-				cursor.execute("update ytd set pay = %s, tax = %s, super_amount = %s where ytd_id = %s", ((new_pay),new_tax,new_super,result[0]))
+		if len(values_list_ytd2) != 0:	
+			extras.execute_values(cursor,"insert into ytd (employee_id,start_year,end_year,pay,tax,super_amount) values %s", values_list_ytd2)
 			conn.commit()
+
+
+	INVOICE_TEMPLATE_PATH = '/Users/inagpal/Downloads/JMD/payslip_template.pdf'
+	INVOICE_OUTPUT_PATH = '/Users/inagpal/Downloads/JMD/payslip.pdf'
+
+	data_dict = {
+	   'company_name': 'Bostata',
+	   'guard_name': 'Abhishek S',
+	   
+	}
+
+	write_fillable_pdf(INVOICE_TEMPLATE_PATH, INVOICE_OUTPUT_PATH, data_dict)
 
 	cursor.close()
 	conn.close()
+
+
 	
+def write_fillable_pdf(input_pdf_path, output_pdf_path, data_dict):
+	ANNOT_KEY = '/Annots'
+	ANNOT_FIELD_KEY = '/T'
+	ANNOT_VAL_KEY = '/V'
+	ANNOT_RECT_KEY = '/Rect'
+	SUBTYPE_KEY = '/Subtype'
+	WIDGET_SUBTYPE_KEY = '/Widget'
+
+	template_pdf = pdfrw.PdfReader(input_pdf_path)
+	annotations = template_pdf.pages[0][ANNOT_KEY]
+	print(annotations)
+	for annotation in annotations:
+		if annotation[SUBTYPE_KEY] == WIDGET_SUBTYPE_KEY:
+			if annotation[ANNOT_FIELD_KEY]:
+				key = annotation[ANNOT_FIELD_KEY][1:-1]
+				if key in data_dict.keys():
+  					annotation.update(pdfrw.PdfDict(V='{}'.format(data_dict[key])))
+
+	pdfrw.PdfWriter().write(output_pdf_path, template_pdf)
 

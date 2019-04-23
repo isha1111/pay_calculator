@@ -17,7 +17,8 @@ requires = [
     'holidays',
     'pandas',
     'openpyxl',
-    'psycopg2-binary'
+    'psycopg2-binary',
+    'pdfrw',
 ]
 
 tests_require = [

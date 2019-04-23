@@ -4,20 +4,22 @@ create table employees (
 	lastname varchar(50),
 	date_of_birth varchar(50),
 	gender varchar(50),
-	mobile int,
+	mobile varchar(50),
 	email varchar(50),
 	primary_role varchar(50),
 	secondary_role varchar(50),
 	award_type varchar(50),
 	employment_type varchar(50),
 	flat_rate int,
-	bsb int,
-	account int,
+	bsb varchar(50),
+	account varchar(50),
 	annual_leave float(2),
 	sick_leave float(2),
 	long_service_leave float(2),
 	super float(2),
-	notes varchar(10000)
+	notes varchar(10000),
+	security_license varchar(15),
+	security_license_expiry varchar(50)
 	);
 
 create table payslip (
