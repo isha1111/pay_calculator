@@ -22,7 +22,7 @@
 			<input v-bind:id="num" type=file  name="files[]" v-on:change='filePicked($event)'>
 		</div>
 
-		<input type="button" value="Organize data" @click="organize_data">
+		<input type="button" value="Send Email" @click="organize_data">
 
 		<form method="post" id="form1" action="send_email_to_guards">
 			<input type="text" name="roaster_data" id="actual_data" style="display: none">
