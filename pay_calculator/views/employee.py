@@ -4,7 +4,7 @@ from dateutil import parser
 from datetime import datetime 
 from datetime import timedelta
 from pay_calculator.models import employee_model as Employee
-
+import json
 # import psycopg2
 
 @view_config(route_name='employee_add', renderer='../templates/employee/employee_add.mako')
@@ -57,4 +57,5 @@ def fetch_employee(request):
 	lastname = request.params.get('lastname')
 	security_license = request.params.get('security_license')
 	data = Employee.find_employee(firstname,lastname,security_license)
-	return "ab"
+	print(data)
+	return json.dumps(data)

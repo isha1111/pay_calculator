@@ -42,7 +42,17 @@ def find_employee(firstname,lastname,security_license):
 	result = cursor.fetchall()
 	cursor.close()
 	conn.close()
-	return result
+
+	emp_obj = []
+	for row in result:
+		temp_obj = {}
+		temp_obj["firstname"] = row[1]
+		temp_obj["lastname"] = row[2]
+		temp_obj["email"] = row[6]
+		temp_obj["phone"] = row[5]
+		temp_obj["security_license"] = row[19]
+		emp_obj.append(temp_obj)
+	return emp_obj
 
 def save_bulk_employee(guard_data):
 	conn = psycopg2.connect(DATABASE_URL, sslmode='require')
@@ -65,10 +75,15 @@ def save_bulk_employee(guard_data):
 					fname = name
 					counter = 1
 				else:
-					lname = lname + ' ' + name
+					if counter == 1:
+						lname = lname + name
+						counter = 2
+					else:
+						lname = lname + ' ' + name
 			phone = row[1]
 			email = row[2]
 			security_license = row[3]
+			lname = lname.rstrip()
 			security_license_expiry = row[4]
 			values = (fname.lower(),lname.lower(),phone,email,security_license,security_license_expiry)
 			values_list.append(values)
@@ -93,8 +108,8 @@ def send_email_to_guards(roaster_data):
 			row = row.split('\t')
 			temp_obj = {}
 			if (len(row) > 7):
-				fname = row[3]
-				lname = row[4]
+				fname = row[3].lower()
+				lname = row[4].lower()
 				fullname = fname + " " + lname
 				start_time = row[2]
 				finish_time = row[6]
@@ -103,10 +118,10 @@ def send_email_to_guards(roaster_data):
 				if fname == '':
 					continue
 				else:
-					if fullname not in messages:
+					if fullname not in messages and fullname != 'first name surname':
 						messages[fullname] = []
 						fname_list.append(fname)
-						lname_list.append(' ' +lname)
+						lname_list.append(lname)
 					# check if it is date row
 					day = row[0]
 					if any(word in day for word in days):
@@ -130,26 +145,30 @@ def send_email_to_guards(roaster_data):
 		cursor.execute("select firstname,lastname,email from employees where firstname = %s and lastname = %s", (fname.lower(),lname.lower(),))
 		result = cursor.fetchone()
 		if result is not None:
-			name_to_email[fname + " " + lname] = result[2]
+			name_to_email[fname.lower() + " " + lname.lower()] = result[2]
 		else:
-			left_out_email.append(fname + " " + lname)
+			left_out_email.append(fname.lower() + " " + lname.lower())
 	cursor.close()
 	conn.close()
-
 	for key in messages:
 		msg = MIMEMultipart()
-		guard_email = name_to_email[key]
-		msg['From'] = 'sam@rsspersonnel.com.au'
-		msg['To'] = guard_email
-		msg['Subject'] = 'Shift Roaster'
-		shift_text = ''
-		for shift in messages[key]:
-			shift_text = shift_text + ' ' +shift
-		body = MIMEText('Dear '+ key + '\n' + shift_text, 'plain')
-		msg.attach(body)
-		s.sendmail("sam@rsspersonnel.com.au",guard_email, msg.as_string())
+		if key in name_to_email:
+			guard_email = name_to_email[key]
+			msg['From'] = 'sam@rsspersonnel.com.au'
+			msg['To'] = guard_email
+			msg['Subject'] = 'Shift Roaster'
+			shift_text = ''
+			for shift in messages[key]:
+				shift_text = shift_text + ' ' +shift
+			body = MIMEText('Dear '+ key.upper() + '\n' + shift_text, 'plain')
+			msg.attach(body)
+			s.sendmail("sam@rsspersonnel.com.au",guard_email, msg.as_string())
+		else:
+			left_out_email.append(key)
+		
 
 	# anybody left out
+	list(set(left_out_email))
 	msg = MIMEMultipart()
 	msg['From'] = 'sam@rsspersonnel.com.au'
 	msg['To'] = 'sam@rsspersonnel.com.au'

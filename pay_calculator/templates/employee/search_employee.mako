@@ -11,6 +11,7 @@
 	Search Employee 
 </div>
 <div id="container">
+	<div id="form_div">
 		<!-- <div class="panel panel-default tab-page "> -->
 			<div class="row">
 				<div class="input">
@@ -34,7 +35,37 @@
 				<input type="button" value="Search" @click='fetch_employee'>
 			</div>
 			
-		<!-- </div>	 -->
+	</div>	
+
+	<div id="search_div" v-if="show_search_results">
+		Search Results
+		<table >
+			<tr>
+				<th>Firstname</th>
+				<th>Lastname</th>
+				<th>Email</th>
+				<th>Phone</th>
+				<th>Security License</th>
+			</tr>
+			<tr v-for="row in search_result">
+				<td>
+					{{row["firstname"]}}
+				</td>
+				<td>
+					{{row["lastname"]}}
+				</td>
+				<td>
+					{{row["email"]}}
+				</td>
+				<td>
+					{{row["phone"]}}
+				</td>
+				<td>
+					{{row["security_license"]}}
+				</td>
+			</tr>
+		</table>
+	</div>
 
 </div>
 <script type="text/javascript">
@@ -44,12 +75,15 @@
 			'security_license': '',
 			'firstname': '',
 			'lastname': '',
+			'show_search_results': false,
+			'search_result': '' 
 		},
 		methods: {
 			fetch_employee: function() {
 				var url = '/fetch_employee?firstname='+this.firstname+'&lastname='+this.lastname+'&security_license='+this.security_license;
 				axios.get(url).then(function(result){
-					console.log(result)
+					app.show_search_results = true;
+					app.search_result = result["data"]
 				})
 			}
 		},
