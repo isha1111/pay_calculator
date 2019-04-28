@@ -11,6 +11,14 @@
 	Search Employee 
 </div>
 <div id="container">
+
+	<div id="mySidenav" class="sidenav">
+		  <a class="closebtn" onclick="closeNav()">&times;</a>
+		  <a href="#">Employee Add</a>
+		  <a href="#">Employee Search</a>
+		  <a href="#">Employee Update</a>
+	      <a href="#">Employee Reminder</a>
+	</div>
 		<!-- <div class="panel panel-default tab-page "> -->
 			<div class="row">
 				<div class="input">
