@@ -14,12 +14,36 @@
 #panel{
     text-align: center;
 }
+
+.submenu {
+    text-align: center;
+}
+
+.submenu_li {
+    display: inline;
+}
+
+.submenu_li a {
+    color: black;
+}
+
+.submenu_li:hover {
+    color: blue;
+    cursor: pointer;
+}
 #search_div{
-    transform: translate(49%, 77%);
-    left: 50%;
+    transform: translate(0, 77%);
     height: 20em;
+    margin: 0 auto;
     width: 50em;
     overflow: scroll;
+}
+
+#no_result_div{
+    transform: translate(41%, 77%);
+    height: 20em;
+    margin: 0 auto;
+    width: 50em;
 }
 
 .subtitle {

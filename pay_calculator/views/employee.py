@@ -32,10 +32,13 @@ def employee_save(request):
 	bsb = request.params.get('bsb')
 	account = request.params.get('account')
 	notes = request.params.get('notes')
+	try:
+		Employee.add_employee_to_database(firstname,lastname,dob,gender,phone,email,security_license,security_license_expiry,awards,baserate,bsb,account,notes)
+		result = 'Successfully saved'
+	except:
+		result = 'Something went wrong'
 
-	Employee.add_employee_to_database(firstname,lastname,dob,gender,phone,email,security_license,security_license_expiry,awards,baserate,bsb,account,notes)
-
-	return {'project':'PAY CALCULATOR'}
+	return {'project':'PAY CALCULATOR','result':result}
 
 @view_config(route_name='send_guard_reminder', renderer='../templates/employee/send_guard_reminder.mako')
 def send_guard_reminder(request):
@@ -50,6 +53,24 @@ def send_email_to_guards(request):
 @view_config(route_name='search_employee', renderer='../templates/employee/search_employee.mako')
 def search_employee(request):
 	return {'project':'PAY CALCULATOR'}
+
+@view_config(route_name='update_employee', renderer='../templates/employee/update_employee.mako')
+def update_employee(request):
+	return {'project':'PAY CALCULATOR'}
+
+@view_config(route_name='delete_employee', renderer='../templates/employee/delete_employee.mako')
+def delete_employee(request):
+	return {'project':'PAY CALCULATOR'}
+
+@view_config(route_name='delete_employee_from_database', renderer='string')
+def delete_employee_from_database(request):
+	emp_id = request.params.get('id')
+	try:
+		Employee.delete_employee(emp_id)
+		result = "successfully deleted"
+	except:
+		result = "something went wrong"
+	return result
 
 @view_config(route_name='fetch_employee', renderer='string')
 def fetch_employee(request):

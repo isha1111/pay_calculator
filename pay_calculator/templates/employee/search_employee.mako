@@ -7,6 +7,14 @@
 <div class="title" id="title">
 	${project}
 </div>
+<div class="submenu" >
+	<ul style="list-style: none;">
+		<li class="submenu_li"><a href="employee_add" >Add Employee</a> | </li>
+		<li class="submenu_li"><a href="search_employee" >Search Employee</a> | </li>
+		<li class="submenu_li"><a href="update_employee" >Update Employee</a> | </li> | 
+		<li class="submenu_li"><a href="search_employee" >Delete Employee</a> | </li> 
+	</ul>
+</div>
 <div class="title" id="employee_add_title">
 	Search Employee 
 </div>
@@ -15,7 +23,7 @@
 		<!-- <div class="panel panel-default tab-page "> -->
 			<div class="row">
 				<div class="input">
-					<label class="required">Firstname</label>
+					<label>Firstname</label>
 					<input type="text" name="firstname" v-model="firstname">
 				</div>
 				<div class="input">
@@ -39,6 +47,7 @@
 
 	<div id="search_div" v-if="show_search_results">
 		Search Results
+		<br>
 		<table >
 			<tr>
 				<th>Firstname</th>
@@ -46,6 +55,7 @@
 				<th>Email</th>
 				<th>Phone</th>
 				<th>Security License</th>
+				<th>View</th>
 			</tr>
 			<tr v-for="row in search_result">
 				<td>
@@ -62,6 +72,9 @@
 				</td>
 				<td>
 					{{row["security_license"]}}
+				</td>
+				<td style="cursor: pointer;color:blue;">
+					view
 				</td>
 			</tr>
 		</table>
@@ -82,8 +95,10 @@
 			fetch_employee: function() {
 				var url = '/fetch_employee?firstname='+this.firstname+'&lastname='+this.lastname+'&security_license='+this.security_license;
 				axios.get(url).then(function(result){
-					app.show_search_results = true;
-					app.search_result = result["data"]
+					if(result["data"].length != 0){
+						app.show_search_results = true;
+						app.search_result = result["data"]
+					}
 				})
 			}
 		},

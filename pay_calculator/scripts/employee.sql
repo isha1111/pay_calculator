@@ -10,7 +10,7 @@ create table employees (
 	secondary_role varchar(50),
 	award_type varchar(50),
 	employment_type varchar(50),
-	flat_rate int,
+	flat_rate varchar(10),
 	bsb varchar(50),
 	account varchar(50),
 	annual_leave float(2),

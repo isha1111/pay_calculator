@@ -11,7 +11,16 @@ def add_employee_to_database(firstname,lastname,dob,gender,phone,email,security_
 
 	conn = psycopg2.connect(DATABASE_URL, sslmode='require')
 	cursor = conn.cursor()
-	cursor.execute("insert into employees (firstname,lastname,date_of_birth,gender,mobile,email,security_license,security_license_expiry,award_type,flat_rate,bsb,account,notes) values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",(firstname,lastname,dob,gender,phone,email,security_license,security_license_expiry,awards,baserate,bsb,account,notes))
+	cursor.execute("insert into employees (firstname,lastname,date_of_birth,gender,mobile,email,security_license,security_license_expiry,award_type,flat_rate,bsb,account,notes) values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",(firstname.lower(),lastname.lower(),dob,gender,phone,email,security_license,security_license_expiry,awards,baserate,bsb,account,notes))
+	conn.commit()
+	cursor.close()
+	conn.close()
+
+def delete_employee(emp_id):
+	print(type(emp_id))
+	conn = psycopg2.connect(DATABASE_URL, sslmode='require')
+	cursor = conn.cursor()
+	cursor.execute("delete from employees where employee_id = %s ",(emp_id,))
 	conn.commit()
 	cursor.close()
 	conn.close()
@@ -21,6 +30,9 @@ def find_employee(firstname,lastname,security_license):
 
 	where = []
 	params= []
+
+	firstname = firstname.lower()
+	lastname = lastname.lower()
 
 	if firstname != '':
 		where.append("firstname = %s")
@@ -46,6 +58,7 @@ def find_employee(firstname,lastname,security_license):
 	emp_obj = []
 	for row in result:
 		temp_obj = {}
+		temp_obj["employee_id"] = row[0]
 		temp_obj["firstname"] = row[1]
 		temp_obj["lastname"] = row[2]
 		temp_obj["email"] = row[6]

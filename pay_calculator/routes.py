@@ -11,3 +11,8 @@ def includeme(config):
 	config.add_route('save_bulk_employee','/save_bulk_employee')
 	config.add_route('search_employee','/search_employee')
 	config.add_route('fetch_employee','/fetch_employee')
+	config.add_route('delete_employee','/delete_employee')
+	config.add_route('update_employee','/update_employee')
+	config.add_route('view_employee','/view_employee')
+	config.add_route('delete_employee_from_database','/delete_employee_from_database')
+	

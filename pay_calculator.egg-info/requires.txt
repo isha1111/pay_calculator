@@ -1,0 +1,16 @@
+plaster_pastedeploy
+pyramid
+pyramid_mako
+pyramid_debugtoolbar
+waitress
+holidays
+pandas
+openpyxl
+psycopg2-binary
+pdfrw
+sqlparse<0.1.18
+
+[testing]
+WebTest>=1.3.1
+pytest>=3.7.4
+pytest-cov

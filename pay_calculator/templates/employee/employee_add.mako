@@ -7,6 +7,15 @@
 <div class="title" id="title">
 	${project}
 </div>
+<div class="submenu" >
+	<ul style="list-style: none;">
+		<li class="submenu_li"><a href="employee_add" >Add Employee</a> | </li>
+		<li class="submenu_li"><a href="search_employee" >Search Employee</a> | </li>
+		<li class="submenu_li"><a href="update_employee" >Update Employee</a> | </li> | 
+		<li class="submenu_li"><a href="delete_employee" >Delete Employee</a> | </li> 
+	</ul>
+</div>
+
 <div class="title" id="employee_add_title">
 	Employee Information
 </div>
@@ -94,7 +103,7 @@
 					<input type="text" name="bsb">
 				</div>
 				<div class="input">
-					<label>Account</label>
+					<label class="required">Account</label>
 					<input type="text" name="account" >
 				</div>
 			</div>
