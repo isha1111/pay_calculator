@@ -15,7 +15,7 @@ requires = [
     'pyramid_debugtoolbar',
     'waitress',
     'holidays',
-    'pandas',
+    'pandas',    
     'openpyxl',
     'psycopg2-binary',
     'pdfrw',

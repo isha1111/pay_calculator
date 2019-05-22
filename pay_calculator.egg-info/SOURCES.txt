@@ -5,6 +5,7 @@ development.ini
 production.ini
 pytest.ini
 requirements.txt
+setup.py
 pay_calculator/__init__.py
 pay_calculator/routes.py
 pay_calculator/tests.py
@@ -16,6 +17,7 @@ pay_calculator.egg-info/not-zip-safe
 pay_calculator.egg-info/requires.txt
 pay_calculator.egg-info/top_level.txt
 pay_calculator/models/__init__.py
+pay_calculator/models/employee_model.py
 pay_calculator/models/holidays.py
 pay_calculator/models/pay_model.py
 pay_calculator/static/pyramid-16x16.png
@@ -29,7 +31,14 @@ pay_calculator/static/js/index.js
 pay_calculator/templates/404.mako
 pay_calculator/templates/index.mako
 pay_calculator/templates/layout.mako
+pay_calculator/templates/employee/delete_employee.mako
 pay_calculator/templates/employee/employee_add.mako
+pay_calculator/templates/employee/employee_save.mako
+pay_calculator/templates/employee/save_bulk_employee.mako
+pay_calculator/templates/employee/search_employee.mako
+pay_calculator/templates/employee/send_email_to_guards.mako
+pay_calculator/templates/employee/send_guard_reminder.mako
+pay_calculator/templates/employee/update_employee.mako
 pay_calculator/templates/pay/pay.mako
 pay_calculator/templates/pay/pay_download.mako
 pay_calculator/views/__init__.py
