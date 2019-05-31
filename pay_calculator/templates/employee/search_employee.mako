@@ -19,7 +19,6 @@
 	Search Employee 
 </div>
 <div id="container">
-	<div id="form_div">
 		<!-- <div class="panel panel-default tab-page "> -->
 			<div class="row">
 				<div class="input">

@@ -11,6 +11,13 @@
 </div>
 
 <div id="container">
+	<div id="mySidenav" class="sidenav">
+		  <a class="closebtn" onclick="closeNav()">&times;</a>
+		  <a href="#">Employee Add</a>
+		  <a href="#">Employee Search</a>
+		  <a href="#">Employee Update</a>
+	      <a href="#">Employee Reminder</a>
+	</div>
 	<div id="form_div">
 		<button @click="addFile">
 		    Add new file upload
