@@ -11,7 +11,7 @@
 	<ul style="list-style: none;">
 		<li class="submenu_li"><a href="employee_add" >Add Employee</a> | </li>
 		<li class="submenu_li"><a href="search_employee" >Search Employee</a> | </li>
-		<li class="submenu_li"><a href="update_employee" >Update Employee</a> | </li> | 
+		<li class="submenu_li"><a href="update_employee" >Update Employee</a> | </li> 
 		<li class="submenu_li"><a href="search_employee" >Delete Employee</a> | </li> 
 	</ul>
 </div>
@@ -73,11 +73,15 @@
 				<td>
 					{{row["security_license"]}}
 				</td>
-				<td style="cursor: pointer;color:blue;">
-					view
+				<td style="cursor: pointer;color:blue;" >
+					<a target="_blank" :href="'/view_employee?emp_id='+row['employee_id']">view</a>
 				</td>
 			</tr>
 		</table>
+	</div>
+
+	<div id="no_result_div" v-if="show_no_result_found">
+		No results found
 	</div>
 
 </div>
@@ -89,7 +93,8 @@
 			'firstname': '',
 			'lastname': '',
 			'show_search_results': false,
-			'search_result': '' 
+			'search_result': '' ,
+			'show_no_result_found': false
 		},
 		methods: {
 			fetch_employee: function() {
@@ -97,7 +102,12 @@
 				axios.get(url).then(function(result){
 					if(result["data"].length != 0){
 						app.show_search_results = true;
-						app.search_result = result["data"]
+						app.search_result = result["data"];
+						app.show_no_result_found = false;
+					}
+					else{
+						app.show_no_result_found = true;
+						app.show_search_results = false;
 					}
 				})
 			}

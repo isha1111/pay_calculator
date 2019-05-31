@@ -17,13 +17,61 @@ def add_employee_to_database(firstname,lastname,dob,gender,phone,email,security_
 	conn.close()
 
 def delete_employee(emp_id):
-	print(type(emp_id))
 	conn = psycopg2.connect(DATABASE_URL, sslmode='require')
 	cursor = conn.cursor()
 	cursor.execute("delete from employees where employee_id = %s ",(emp_id,))
 	conn.commit()
 	cursor.close()
 	conn.close()
+
+def save_updated_employee(emp_id,firstname,lastname,dob,gender,phone,email,security_license,security_license_expiry,awards,baserate,bsb,account,notes):
+	print(emp_id)
+	# try:
+	conn = psycopg2.connect(DATABASE_URL, sslmode='require')
+	cursor = conn.cursor()
+	cursor.execute("update employees set firstname = %s, lastname = %s, date_of_birth = %s, gender = %s, mobile = %s, email = %s, security_license = %s, security_license_expiry = %s, award_type = %s, flat_rate = %s, bsb = %s, account = %s, notes = %s where employee_id = %s",(firstname.lower(),lastname.lower(),dob,gender,phone,email,security_license,security_license_expiry,awards,baserate,bsb,account,notes,emp_id))
+	conn.commit()
+	cursor.close()
+	conn.close()
+	return "Updated Successfully"
+	# except:
+	# 	return "Error in Updating"
+
+def find_employee_by_id(emp_id):
+	conn = psycopg2.connect(DATABASE_URL, sslmode='require')
+	cursor = conn.cursor()
+	cursor.execute('select * from employees where employee_id = %s',(emp_id,))
+	result = cursor.fetchall()
+	cursor.close()
+	conn.close()
+
+	emp_obj = []
+
+	for row in result:
+		temp_obj = {}
+		temp_obj["employee_id"] = row[0]
+		temp_obj["firstname"] = row[1]
+		temp_obj["lastname"] = row[2]
+		temp_obj['date_of_birth'] = row[3]
+		temp_obj['gender'] = row[4]
+		temp_obj['mobile'] = row[5]
+		temp_obj['email'] = row[6]
+		temp_obj['primary_role'] = row[7]
+		temp_obj['secondary_role'] = row[8]
+		temp_obj['award_type'] = row[9]
+		temp_obj['employment_type'] = row[10]
+		temp_obj['flat_rate'] = row[11]
+		temp_obj['bsb'] = row[12]
+		temp_obj['account'] = row[13]
+		temp_obj['annual_leave'] = row[14]
+		temp_obj['sick_leave'] = row[15]
+		temp_obj['long_service_leave'] = row[16]
+		temp_obj['super'] = row[17]
+		temp_obj['notes'] = row[18]
+		temp_obj['security_license'] = row[19]
+		temp_obj['security_license_expiry'] = row[20]
+		emp_obj.append(temp_obj)
+	return emp_obj
 
 def find_employee(firstname,lastname,security_license):
 	sql = 'select * from employees'

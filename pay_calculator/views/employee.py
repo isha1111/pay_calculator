@@ -40,6 +40,26 @@ def employee_save(request):
 
 	return {'project':'PAY CALCULATOR','result':result}
 
+@view_config(route_name='save_updated_employee', renderer='string')
+def save_updated_employee(request):
+	emp_id = request.params.get('emp_id')
+	print(emp_id)
+	firstname = request.params.get('firstname')
+	lastname = request.params.get('lastname')
+	dob = request.params.get('dob')
+	gender = request.params.get('gender')
+	phone = request.params.get('phone')
+	email = request.params.get('email')
+	security_license = request.params.get('security_license')
+	security_license_expiry = request.params.get('security_license_expiry')
+	awards = request.params.get('awards')
+	baserate = request.params.get('baserate')
+	bsb = request.params.get('bsb')
+	account = request.params.get('account')
+	notes = request.params.get('notes')
+	result = Employee.save_updated_employee(emp_id,firstname,lastname,dob,gender,phone,email,security_license,security_license_expiry,awards,baserate,bsb,account,notes)
+	return result
+
 @view_config(route_name='send_guard_reminder', renderer='../templates/employee/send_guard_reminder.mako')
 def send_guard_reminder(request):
 	return {'project':'PAY CALCULATOR'}	
@@ -57,6 +77,18 @@ def search_employee(request):
 @view_config(route_name='update_employee', renderer='../templates/employee/update_employee.mako')
 def update_employee(request):
 	return {'project':'PAY CALCULATOR'}
+
+@view_config(route_name='view_employee', renderer='../templates/employee/view_employee.mako')
+def view_employee(request):
+	emp_id = request.params.get('emp_id')
+	emp_data = Employee.find_employee_by_id(emp_id)
+	return {'project':'PAY CALCULATOR','emp_data':emp_data}
+
+@view_config(route_name='edit_employee', renderer='../templates/employee/edit_employee.mako')
+def edit_employee(request):
+	emp_id = request.params.get('emp_id')
+	emp_data = Employee.find_employee_by_id(emp_id)
+	return {'project':'PAY CALCULATOR','emp_data':emp_data}
 
 @view_config(route_name='delete_employee', renderer='../templates/employee/delete_employee.mako')
 def delete_employee(request):
@@ -78,5 +110,4 @@ def fetch_employee(request):
 	lastname = request.params.get('lastname')
 	security_license = request.params.get('security_license')
 	data = Employee.find_employee(firstname,lastname,security_license)
-	print(data)
 	return json.dumps(data)
