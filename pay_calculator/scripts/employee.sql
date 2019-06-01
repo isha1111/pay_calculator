@@ -45,6 +45,7 @@ create table ytd (
 	);
 
 create table users ( 
+	user_id serial primary key, 
 	username varchar(50) NOT NULL,
 	firstname varchar(20) NOT NULL,
 	lastname varchar(20) NOT NULL,
