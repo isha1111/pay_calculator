@@ -43,3 +43,12 @@ create table ytd (
 	tax varchar(50) NOT NULL,
 	super_amount varchar(50) NOT NULL
 	);
+
+create table users ( 
+	username varchar(50) NOT NULL,
+	firstname varchar(20) NOT NULL,
+	lastname varchar(20) NOT NULL,
+	password varchar(200) NOT NULL,
+	role varchar(20),
+	creation_date varchar(20) NOT NULL
+);
