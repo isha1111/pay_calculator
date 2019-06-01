@@ -12,9 +12,6 @@ def register_employee(firstname,lastname,email,password,password2):
 	role = 'normal'
 	creation_date = date.today().strftime('%d-%m-%Y')
 
-	# check if user exists in DB
-
-
 	# check password criteria
 	rgx = re.compile(r'\d.*?[A-Z].*?[a-z]')
 	if rgx.match(''.join(sorted(password))) and len(password) >= 6:
@@ -31,16 +28,20 @@ def register_employee(firstname,lastname,email,password,password2):
 	if result is None:
 		return "This email is not valid, it must be a valid email address"
 
-	
-
+	# check if user exists in DB
+	conn = psycopg2.connect(DATABASE_URL, sslmode='require')
+	cursor = conn.cursor()
+	cursor.execute("select count(*) from users where username = %s",(email.lower(),))
+	result = cursor.fetchall()
+	if result[0][0] != 0:
+		return "User Exist Already"
 	# if not create user
 	m = hashlib.sha1()
 	m.update(password.encode('utf-8'))
 	sha1_password = m.hexdigest()
 
-	conn = psycopg2.connect(DATABASE_URL, sslmode='require')
-	cursor = conn.cursor()
-	cursor.execute("insert into users (firstname,lastname,username,password,role,creation_date) values (%s,%s,%s,%s,%s,%s)",(firstname,lastname,email,sha1_password,role,creation_date))
+	
+	cursor.execute("insert into users (firstname,lastname,username,password,role,creation_date) values (%s,%s,%s,%s,%s,%s)",(firstname.lower(),lastname.lower(),email.lower(),sha1_password,role,creation_date))
 	conn.commit()
 	cursor.close()
 	conn.close()

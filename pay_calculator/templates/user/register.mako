@@ -15,7 +15,7 @@ import json
 </div>
 
 <div id="container">
-	<div id="confirmation" >
+	<div id="confirmation" style="text-align: center;">
 		{{ confirmation_msg }}
 	</div>
 	<div id="form_div">
