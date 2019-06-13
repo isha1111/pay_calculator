@@ -3,9 +3,9 @@ import re
 from datetime import date
 import psycopg2
 from psycopg2 import extras
+import os
 
-DATABASE_URL = 'postgres://lrfdzdjpnximyq:3f1ddb578e598f054626ac0754752cb27d27d14e492aaab2a3b71dcdf50d4265@ec2-54-235-77-0.compute-1.amazonaws.com:5432/dvq1qp8vsr5hr'
-
+DATABASE_URL = os.environ.get('db_url', None)
 
 def register_employee(firstname,lastname,email,password,password2):
 	

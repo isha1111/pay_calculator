@@ -12,8 +12,8 @@ import holidays
 import psycopg2
 from psycopg2 import extras
 
-import os
 import pdfrw
+import os
 
 from urllib.request import urlopen
 from urllib.request import Request
@@ -21,6 +21,9 @@ from io import StringIO, BytesIO
 import PyPDF2 
 
 from pay_calculator.models.holidays import Holidays
+
+DATABASE_URL = os.environ.get('db_url', None)
+
 
 
 ### Assumption is made that fortnightly data is being processed ###
@@ -800,8 +803,7 @@ def calculate_sick_leave(worked_hours):
 	return calculate_leave
 
 def save_leave_data(pay):
-	conn = psycopg2.connect('postgres://lrfdzdjpnximyq:3f1ddb578e598f054626ac0754752cb27d27d14e492aaab2a3b71dcdf50d4265@ec2-54-235-77-0.compute-1.amazonaws.com:5432/dvq1qp8vsr5hr'
-, sslmode='require')
+	conn = psycopg2.connect(DATABASE_URL, sslmode='require')
 	cursor = conn.cursor()
 
 	values_list = []
@@ -866,8 +868,7 @@ def save_payslip_data(pay,dates):
 
 	firstname_list = []	
 	
-	conn = psycopg2.connect('postgres://lrfdzdjpnximyq:3f1ddb578e598f054626ac0754752cb27d27d14e492aaab2a3b71dcdf50d4265@ec2-54-235-77-0.compute-1.amazonaws.com:5432/dvq1qp8vsr5hr'
-, sslmode='require')
+	conn = psycopg2.connect(DATABASE_URL, sslmode='require')
 	cursor = conn.cursor()
 
 	values_list = []
