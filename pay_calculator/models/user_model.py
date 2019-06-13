@@ -48,7 +48,7 @@ def register_employee(firstname,lastname,email,password,password2):
 	return "Successfully created"
 
  
-def create_stay_signed_in_md5(username,password): #CRITICAL-2
+def create_cookie_in_md5(username,password): #CRITICAL-2
 	username = username.lower()
 	m = hashlib.sha1()
 	m.update(password.encode('utf-8'))
@@ -62,19 +62,20 @@ def create_stay_signed_in_md5(username,password): #CRITICAL-2
 
 def find_user(email,password):
 	username = email.lower()
-
+	
 	m = hashlib.sha1()
 	m.update(password.encode('utf-8'))
 	sha1_password = m.hexdigest()
-
+	
 	conn = psycopg2.connect(DATABASE_URL, sslmode='require')
 	cursor = conn.cursor()
 
-	cursor.execute("select count(*) from users where username = %s and password= %s",(username,password))
+	cursor.execute("select count(*) from users where username = %s and password= %s",(username,sha1_password))
+	
 	result = cursor.fetchall()
 
-	if result[0][0] != 1:
-		return None
+	if result[0][0] == 1:
+		return "User Found"
 	else:
-		"User Found"
+		return None
 

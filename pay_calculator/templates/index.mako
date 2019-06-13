@@ -1,6 +1,32 @@
 <%inherit file="layout.mako"/>
+<style type="text/css">
+	.submenu {
+	    text-align: center;
+	}
+
+	.submenu_li {
+	    display: inline;
+	}
+
+	.submenu_li a {
+	    color: black;
+	}
+
+	.submenu_li:hover {
+	    color: blue;
+	    cursor: pointer;
+	}
+</style>
 <div class="title" id="title">
 	${project}
+</div>
+<div class="submenu" >
+	<ul style="list-style: none;">
+		<li class="submenu_li"><a href="employee_add" >Add Employee</a> | </li>
+		<li class="submenu_li"><a href="search_employee" >Search Employee</a> | </li>
+		<li class="submenu_li"><a href="update_employee" >Update Employee</a> | </li> 
+		<li class="submenu_li"><a href="delete_employee" >Delete Employee</a> | </li> 
+	</ul>
 </div>
 <div class="hidden" id="calculated_data"></div>
 <div id="instructions" class="center">

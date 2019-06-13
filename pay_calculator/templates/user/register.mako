@@ -47,6 +47,12 @@ import json
 				<input type="submit" value="Regsiter">
 			</div>
 		</form>
+		<div style="text-align: center;">
+			<span style="font-size: .75em">OR</span>
+		</div>
+		<div style="text-align: center;">
+			<button> <a href="/login" style="text-decoration: none;">Login</a> </button>
+		</div>
 		<!-- <div class="panel panel-default tab-page "> -->
 	</div>	
 

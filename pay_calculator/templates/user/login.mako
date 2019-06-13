@@ -34,5 +34,14 @@ import json
 				<input type="submit" value="Login">
 			</div>
 		</form>
+		<div style="text-align: center;">
+			<span style="font-size: .75em">OR</span>
+		</div>
+		
+		<div style="text-align: center;">
+			<button> <a href="/register" style="text-decoration: none;">Register</a> </button>
+		</div>
+		
 	</div>
+
 </div>
