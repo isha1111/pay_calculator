@@ -6,7 +6,9 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import os
 
-DATABASE_URL = os.environ.get('db_url', None)
+# is_prod = os.environ.get('DATABASE_URL', None)
+
+DATABASE_URL = 'postgres://lrfdzdjpnximyq:3f1ddb578e598f054626ac0754752cb27d27d14e492aaab2a3b71dcdf50d4265@ec2-54-235-77-0.compute-1.amazonaws.com:5432/dvq1qp8vsr5hr'
 
 def add_employee_to_database(firstname,lastname,dob,gender,phone,email,security_license,security_license_expiry,awards,baserate,bsb,account,notes):
 
