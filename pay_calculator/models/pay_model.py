@@ -1044,7 +1044,7 @@ def save_payslip_data(pay,dates):
 			conn.commit()
 
 
-	INVOICE_TEMPLATE_PATH = '/Users/inagpal/Downloads/JMD/payslip_template.pdf'
+	INVOICE_TEMPLATE_PATH = 'https://github.com/isha1111/pay_calculator/blob/master/pay_calculator/models/payslip_template.pdf'
 	INVOICE_OUTPUT_PATH = '/Users/inagpal/Downloads/JMD/payslip.pdf'
 
 	data_dict = {
