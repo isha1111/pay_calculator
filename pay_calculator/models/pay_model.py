@@ -29,6 +29,52 @@ DATABASE_URL = 'postgres://lrfdzdjpnximyq:3f1ddb578e598f054626ac0754752cb27d27d1
 
 ### Assumption is made that fortnightly data is being processed ###
 
+def get_ytd_and_pay_data(firstname, start_date):
+	conn = psycopg2.connect(DATABASE_URL, sslmode='require')
+	cursor = conn.cursor()
+	cursor.execute('select * from payslip where firstname = %s and fortnight_start = %s',(firstname,start_date))
+	raw_sql =cursor.mogrify('select * from payslip where firstname = %s and fortnight_start = %s',(firstname,start_date))
+	pay_data = cursor.fetchone()
+	cursor.close()
+	conn.close()
+
+	firstname = pay_data[1]
+	fortnight_start = pay_data[3]
+	fortnight_end = pay_data[4]
+	gross_pay = round(float(pay_data[5]),2)
+	net_pay = round(float(pay_data[6]),2)
+	tax = round(float(pay_data[7]),2)
+	super_amount = round(float(pay_data[8]),2)
+	published_hours = pay_data[9]
+	published_rate = pay_data[10]
+	public_holiday_hours = pay_data[11]
+	public_holiday_rate = pay_data[12]
+	weekday_hours = pay_data[13]
+	weekday_rate = pay_data[14]
+	weekend_hours = pay_data[15]
+	weekend_rate = pay_data[16]
+	hourly_hours = pay_data[17]
+	hourly_rate = pay_data[18]
+	saturday_hours = pay_data[19]
+	saturday_rate = pay_data[20]
+	sunday_hours = pay_data[21]
+	sunday_rate = pay_data[22]
+	night_span_hours = pay_data[23]
+	night_span_rate = pay_data[24]
+
+	conn = psycopg2.connect(DATABASE_URL, sslmode='require')
+	cursor = conn.cursor()
+	cursor.execute('select * from ytd where employee_id = (select employee_id from employees where firstname = %s) and start_year = %s',(firstname,'2018'))
+	ytd_data = cursor.fetchone()
+	cursor.close()
+	conn.close()
+	
+	ytd_pay = round(float(ytd_data[4]),2)
+	ytd_tax = round(float(ytd_data[5]),2)
+	ytd_super_amount = round(float(ytd_data[6]),2)
+
+	return [firstname.title(),fortnight_start,fortnight_end,gross_pay,net_pay,tax,super_amount,ytd_pay,ytd_tax,ytd_super_amount,published_hours,published_rate,public_holiday_hours,public_holiday_rate,weekday_hours,weekday_rate,weekend_hours,weekend_rate,hourly_hours,hourly_rate,saturday_hours,saturday_rate,sunday_hours,sunday_rate,night_span_hours,night_span_rate]
+
 def calculate_jmd_eba_rate(roaster_data, state):	
 	public_day_payrate = 50.53
 	weekday_no_rotating_rate = 21
@@ -254,6 +300,8 @@ def calculate_jmd_eba_rate(roaster_data, state):
 			temp_obj['weeknight_and_weekend_rotating_rate'] = 0
 			temp_obj['weekday_and_weeknight_and_weekend_rotating_rate'] = 0
 			temp_obj['leave_rate'] = leave_hours
+			temp_obj['total_published_hours'] = total_published_hours
+			temp_obj['total_published_hours_rate'] = 20.21
 			total_amount += ((20.21 * total_published_hours) + (20.21 * leave_hours))
 
 		# 2. when no weekday and weekend hours (meaning only weeknight hours in mon-fri outside 06:00 to 18:00)
@@ -266,6 +314,8 @@ def calculate_jmd_eba_rate(roaster_data, state):
 			temp_obj['weeknight_and_weekend_rotating_rate'] = 0
 			temp_obj['weekday_and_weeknight_and_weekend_rotating_rate'] = 0
 			temp_obj['leave_rate'] = leave_hours
+			temp_obj['total_published_hours'] = total_published_hours
+			temp_obj['total_published_hours_rate'] = 24.68
 			total_amount += ((24.68 * total_published_hours)+ (20.21 * leave_hours))
 
 		# 3. when person work weeknight and weekday but no weekend
@@ -288,6 +338,8 @@ def calculate_jmd_eba_rate(roaster_data, state):
 				weekday_hours = weekday_hours + weeknight_hours 
 				weeknight_hours = 0
 				temp_obj['weekday_and_weeknight_rate'] = total_published_hours
+			temp_obj['total_published_hours'] = total_published_hours
+			temp_obj['total_published_hours_rate'] = 21.11
 			total_amount += ((21.11 * total_published_hours) + (20.21 * leave_hours))
 
 		# 4. When person works weeknight and weekend and weekday
@@ -303,16 +355,23 @@ def calculate_jmd_eba_rate(roaster_data, state):
 			if (1/3 * total_hours) > weekday_hours:
 				temp_obj['weekday_and_weeknight_and_weekend_rotating_rate'] = 0
 				temp_obj['weeknight_and_weekend_rotating_rate'] = total_published_hours
+				temp_obj['total_published_hours'] = total_published_hours
+				temp_obj['total_published_hours_rate'] = 26.68
 				total_amount += ((26.68 * total_published_hours) + (20.21 * leave_hours))
 			else:
 				temp_obj['weekday_and_weeknight_and_weekend_rotating_rate'] = total_published_hours
 				temp_obj['weeknight_and_weekend_rotating_rate'] = 0
+				temp_obj['total_published_hours'] = total_published_hours
+				temp_obj['total_published_hours_rate'] = 25.12
 				total_amount += ((25.12 * total_published_hours) + (20.21 * leave_hours))
 
 		if(public_holiday_hours != 0):
 			temp_obj["public_holiday"] = public_holiday_hours
+			temp_obj['public_holiday_hours'] = public_holiday_hours
+			
 			total_amount += (public_holiday_hours * public_day_payrate)
-
+			
+		temp_obj['public_holiday_rate'] = public_day_payrate
 		temp_obj["total_amount"] = total_amount
 		temp_obj["tax"] = calculate_tax(total_amount)
 		temp_obj["super"] = calculate_super(total_amount)
@@ -612,10 +671,18 @@ def calculate_awards_rate(roaster_data, state):
 		temp_obj['hourly_hours'] = round(hourly_hours,2) 
 		temp_obj['saturday_hours'] = saturday_hours
 		temp_obj['sunday_hours'] = sunday_hours
+		temp_obj['guard_shift_day'] = guard_shift_day
 		temp_obj['public_holiday_hours'] = round(public_holiday_hours,2)
 		temp_obj['night_span_hours'] = round(night_span_hours,2)
+		temp_obj['hourly_rate'] = hourly_pay_rate
+		temp_obj['saturday_rate'] = saturday_rate
+		temp_obj['sunday_rate'] = sunday_rate
+		temp_obj['public_holiday_rate'] = public_holiday_rate
+		temp_obj['night_span_rate'] = mon_fri_night_span_rate
 		temp_obj['leave_hours'] = leave_hours
 		total_pay = (hourly_hours * hourly_pay_rate) + (saturday_hours * saturday_rate) + (sunday_hours * sunday_rate) + (public_holiday_hours * public_holiday_rate) + (night_span_hours * mon_fri_night_span_rate) + (20.21 * leave_hours)
+		total_hours = hourly_hours + saturday_hours + sunday_hours +public_holiday_hours + night_span_hours 
+		temp_obj['total_hours'] = total_hours
 		temp_obj["total_amount"] = total_pay
 		temp_obj["tax"] = calculate_tax(total_pay)
 		temp_obj["super"] = calculate_super(total_pay)
@@ -777,9 +844,14 @@ def calculate_rss_rate(roaster_data, state):
 		temp_obj = {}
 		temp_obj['weekday_hours'] = round(weekday_hours,2)
 		temp_obj['weekend_hours'] = round(weekend_hours,2)
+		temp_obj['weekday_rate'] = weekday_rate
+		temp_obj['weekend_rate'] = weekend_rate
 		temp_obj['leave_hours'] = leave_hours
+		temp_obj['guard_shift_day'] = guard_shift_day
 		total_pay = (weekday_rate * weekday_hours) + (weekend_rate * weekend_hours) + (20.21 * leave_hours)
 		temp_obj['total_amount'] = total_pay
+		total_hours = weekend_hours + weekday_hours
+		temp_obj['total_hours'] = total_hours
 		temp_obj["tax"] = calculate_tax(total_pay)
 		total_worked_hours = weekday_hours + weekend_hours
 		temp_obj["annual_leave"] = calculate_annual_leave(total_worked_hours)
@@ -880,9 +952,66 @@ def save_payslip_data(pay,dates):
 		net_pay = pay[key][0]['net_pay']
 		super_amount = pay[key][0]['super']
 		tax = pay[key][0]['tax']
-		values = (first_name,'',fortnight_start,fortnight_end,gross_pay,net_pay,tax,super_amount)
+
+		if 'total_published_hours' in pay[key][0]:
+			total_published_hours = pay[key][0]['total_published_hours']
+			total_published_hours_rate = pay[key][0]['total_published_hours_rate']
+		else:
+			total_published_hours = ''
+			total_published_hours_rate = ''
+
+		if 'public_holiday_hours' in pay[key][0]:
+			total_public_holiday_hours = pay[key][0]['public_holiday_hours']
+			total_public_holiday_hours_rate = pay[key][0]['public_holiday_rate']
+		else:
+			total_public_holiday_hours = ''
+			total_public_holiday_hours_rate = ''
+
+		if 'weekday_hours' in pay[key][0]:
+			weekday_hours = pay[key][0]['weekday_hours']
+			weekday_rate = pay[key][0]['weekday_rate']
+		else:
+			weekday_hours = ''
+			weekday_rate = ''
+
+		if 'weekend_hours' in pay[key][0]:
+			weekend_hours = pay[key][0]['weekend_hours']
+			weekend_rate = pay[key][0]['weekend_rate']
+		else:
+			weekend_hours = ''
+			weekend_rate = ''
+
+		if 'hourly_hours' in pay[key][0]:
+			hourly_hours = pay[key][0]['hourly_hours']
+			hourly_rate = pay[key][0]['hourly_rate']
+		else:
+			hourly_hours = ''
+			hourly_rate = ''
+
+		if 'saturday_hours' in pay[key][0]:
+			saturday_hours = pay[key][0]['saturday_hours']
+			saturday_rate = pay[key][0]['saturday_rate']
+		else:
+			saturday_hours = ''
+			saturday_rate = ''
+
+		if 'sunday_hours' in pay[key][0]:
+			sunday_hours = pay[key][0]['sunday_hours']
+			sunday_rate = pay[key][0]['sunday_rate']
+		else:
+			sunday_hours = ''
+			sunday_rate = ''
+
+		if 'night_span_hours' in pay[key][0]:
+			night_span_hours = pay[key][0]['night_span_hours']
+			night_span_rate = pay[key][0]['night_span_rate']
+		else:
+			night_span_hours = ''
+			night_span_rate = ''
+
+		values = (first_name,'',fortnight_start,fortnight_end,gross_pay,net_pay,tax,super_amount,total_published_hours,total_published_hours_rate,total_public_holiday_hours,total_public_holiday_hours_rate,weekday_hours,weekday_rate,weekend_hours,weekend_rate,hourly_hours,hourly_rate,saturday_hours,saturday_rate,sunday_hours,sunday_rate,night_span_hours,night_span_rate)
 		values_list.append(values)
-	extras.execute_values(cursor,"insert into payslip (firstname, lastname, fortnight_start, fortnight_end, gross_pay, net_pay, tax, super) VALUES %s", values_list)
+	extras.execute_values(cursor,"insert into payslip (firstname, lastname, fortnight_start, fortnight_end, gross_pay, net_pay, tax, super,published_hours,published_rate,public_holiday_hours,public_holiday_rate,weekday_hours,weekday_rate,weekend_hours,weekend_rate,hourly_hours,hourly_rate,saturday_hours,saturday_rate,sunday_hours,sunday_rate,night_span_hours,night_span_rate) VALUES %s", values_list)
 	conn.commit()
 
 	# update ytd and create ytd if not there
@@ -1044,16 +1173,16 @@ def save_payslip_data(pay,dates):
 			conn.commit()
 
 
-	INVOICE_TEMPLATE_PATH = 'https://github.com/isha1111/pay_calculator/blob/master/pay_calculator/models/payslip_template.pdf'
-	INVOICE_OUTPUT_PATH = '/Users/inagpal/Downloads/JMD/payslip.pdf'
+	# INVOICE_TEMPLATE_PATH = 'https://github.com/isha1111/pay_calculator/blob/master/pay_calculator/models/payslip_template.pdf'
+	# INVOICE_OUTPUT_PATH = '/Users/inagpal/Downloads/JMD/payslip.pdf'
 
-	data_dict = {
-	   'company_name': 'Bostata',
-	   'guard_name': 'Abhishek S',
+	# data_dict = {
+	#    'company_name': 'Bostata',
+	#    'guard_name': 'Abhishek S',
 	   
-	}
+	# }
 
-	write_fillable_pdf(INVOICE_TEMPLATE_PATH, INVOICE_OUTPUT_PATH, data_dict)
+	# write_fillable_pdf(INVOaICE_TEMPLATE_PATH, INVOICE_OUTPUT_PATH, data_dict)
 
 	cursor.close()
 	conn.close()

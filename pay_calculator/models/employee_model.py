@@ -10,11 +10,11 @@ import os
 
 DATABASE_URL = 'postgres://lrfdzdjpnximyq:3f1ddb578e598f054626ac0754752cb27d27d14e492aaab2a3b71dcdf50d4265@ec2-54-235-77-0.compute-1.amazonaws.com:5432/dvq1qp8vsr5hr'
 
-def add_employee_to_database(firstname,lastname,dob,gender,phone,email,security_license,security_license_expiry,awards,baserate,bsb,account,notes):
+def add_employee_to_database(firstname,dob,gender,phone,email,security_license,security_license_expiry,awards,baserate,bsb,account,notes):
 
 	conn = psycopg2.connect(DATABASE_URL, sslmode='require')
 	cursor = conn.cursor()
-	cursor.execute("insert into employees (firstname,lastname,date_of_birth,gender,mobile,email,security_license,security_license_expiry,award_type,flat_rate,bsb,account,notes) values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",(firstname.lower(),lastname.lower(),dob,gender,phone,email,security_license,security_license_expiry,awards,baserate,bsb,account,notes))
+	cursor.execute("insert into employees (firstname,date_of_birth,gender,mobile,email,security_license,security_license_expiry,award_type,flat_rate,bsb,account,notes) values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",(firstname.lower(),dob,gender,phone,email,security_license,security_license_expiry,awards,baserate,bsb,account,notes))
 	conn.commit()
 	cursor.close()
 	conn.close()
@@ -27,12 +27,12 @@ def delete_employee(emp_id):
 	cursor.close()
 	conn.close()
 
-def save_updated_employee(emp_id,firstname,lastname,dob,gender,phone,email,security_license,security_license_expiry,awards,baserate,bsb,account,notes):
+def save_updated_employee(emp_id,firstname,dob,gender,phone,email,security_license,security_license_expiry,awards,baserate,bsb,account,notes):
 	print(emp_id)
 	# try:
 	conn = psycopg2.connect(DATABASE_URL, sslmode='require')
 	cursor = conn.cursor()
-	cursor.execute("update employees set firstname = %s, lastname = %s, date_of_birth = %s, gender = %s, mobile = %s, email = %s, security_license = %s, security_license_expiry = %s, award_type = %s, flat_rate = %s, bsb = %s, account = %s, notes = %s where employee_id = %s",(firstname.lower(),lastname.lower(),dob,gender,phone,email,security_license,security_license_expiry,awards,baserate,bsb,account,notes,emp_id))
+	cursor.execute("update employees set firstname = %s, date_of_birth = %s, gender = %s, mobile = %s, email = %s, security_license = %s, security_license_expiry = %s, award_type = %s, flat_rate = %s, bsb = %s, account = %s, notes = %s where employee_id = %s",(firstname.lower(),dob,gender,phone,email,security_license,security_license_expiry,awards,baserate,bsb,account,notes,emp_id))
 	conn.commit()
 	cursor.close()
 	conn.close()
@@ -54,7 +54,7 @@ def find_employee_by_id(emp_id):
 		temp_obj = {}
 		temp_obj["employee_id"] = row[0]
 		temp_obj["firstname"] = row[1]
-		temp_obj["lastname"] = row[2]
+		# temp_obj["lastname"] = row[2]
 		temp_obj['date_of_birth'] = row[3]
 		temp_obj['gender'] = row[4]
 		temp_obj['mobile'] = row[5]
@@ -76,21 +76,17 @@ def find_employee_by_id(emp_id):
 		emp_obj.append(temp_obj)
 	return emp_obj
 
-def find_employee(firstname,lastname,security_license):
+def find_employee(firstname,security_license):
 	sql = 'select * from employees'
 
 	where = []
 	params= []
 
 	firstname = firstname.lower()
-	lastname = lastname.lower()
 
 	if firstname != '':
-		where.append("firstname = %s")
-		params.append(firstname)
-	if lastname != '':
-		where.append("lastname = %s")
-		params.append(lastname)
+		where.append("firstname ilike %s")
+		params.append('%'+firstname+'%')
 	if security_license != '':
 		where.append("security_license = %s")
 		params.append(security_license)
@@ -99,6 +95,7 @@ def find_employee(firstname,lastname,security_license):
 	if where:
 		sql = '{} WHERE {}'.format(sql, ' AND '.join(where))
 
+	print(sql)
 	conn = psycopg2.connect(DATABASE_URL, sslmode='require')
 	cursor = conn.cursor()
 	cursor.execute(sql,params)
@@ -111,7 +108,6 @@ def find_employee(firstname,lastname,security_license):
 		temp_obj = {}
 		temp_obj["employee_id"] = row[0]
 		temp_obj["firstname"] = row[1]
-		temp_obj["lastname"] = row[2]
 		temp_obj["email"] = row[6]
 		temp_obj["phone"] = row[5]
 		temp_obj["security_license"] = row[19]
@@ -129,21 +125,7 @@ def save_bulk_employee(guard_data):
 	for row in list_of_guard_data:
 		temp_obj = {} 
 		if row != '' and row_num !=1:
-			row = row.split('\t')
-
-			names = row[0].split(' ')
-			counter = 0
-			lname = ''
-			for name in names:
-				if counter == 0:
-					fname = name
-					counter = 1
-				else:
-					if counter == 1:
-						lname = lname + name
-						counter = 2
-					else:
-						lname = lname + ' ' + name
+			firstname = row[0]
 			phone = row[1]
 			email = row[2]
 			security_license = row[3]
@@ -153,7 +135,7 @@ def save_bulk_employee(guard_data):
 			values_list.append(values)
 		row_num = row_num + 1
 
-	extras.execute_values(cursor,"insert into employees (firstname,lastname,mobile,email,security_license,security_license_expiry) values %s", values_list)
+	extras.execute_values(cursor,"insert into employees (firstname,mobile,email,security_license,security_license_expiry) values %s", values_list)
 	conn.commit()
 	cursor.close()
 	conn.close()
@@ -196,7 +178,7 @@ def send_email_to_guards(roaster_data):
 	# # now send email
 	s = smtplib.SMTP('smtp.office365.com','587')
 	s.starttls()
-	s.login("sam@rsspersonnel.com.au", "410600@Aa")
+	s.login("email", "")
 
 	name_to_email = {}
 	left_out_email = []
@@ -218,7 +200,7 @@ def send_email_to_guards(roaster_data):
 		msg = MIMEMultipart()
 		if key in name_to_email:
 			guard_email = name_to_email[key]
-			msg['From'] = 'sam@rsspersonnel.com.au'
+			msg['From'] = 'some_email'
 			msg['To'] = guard_email
 			msg['Subject'] = 'Shift Roaster'
 			shift_text = ''
@@ -226,7 +208,7 @@ def send_email_to_guards(roaster_data):
 				shift_text = shift_text + ' ' +shift
 			body = MIMEText('Dear '+ key.upper() + '\n' + shift_text, 'plain')
 			msg.attach(body)
-			s.sendmail("sam@rsspersonnel.com.au",guard_email, msg.as_string())
+			s.sendmail("some_email",guard_email, msg.as_string())
 		else:
 			left_out_email.append(key)
 		
@@ -234,11 +216,11 @@ def send_email_to_guards(roaster_data):
 	# anybody left out
 	list(set(left_out_email))
 	msg = MIMEMultipart()
-	msg['From'] = 'sam@rsspersonnel.com.au'
-	msg['To'] = 'sam@rsspersonnel.com.au'
+	msg['From'] = 'some_email'
+	msg['To'] = 'some_email'
 	msg['Subject'] = 'Shift Roaster'
 	shift_text = ''
 	body = MIMEText('Please email below guard as their email was not found in database' + '\n' + str(left_out_email), 'plain')
 	msg.attach(body)
-	s.sendmail("sam@rsspersonnel.com.au","sam@rsspersonnel.com.au", msg.as_string())
+	s.sendmail("some_email","some_email", msg.as_string())
 	return messages

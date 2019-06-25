@@ -26,6 +26,7 @@
 		<li class="submenu_li"><a href="search_employee" >Search Employee</a> | </li>
 		<li class="submenu_li"><a href="update_employee" >Update Employee</a> | </li> 
 		<li class="submenu_li"><a href="delete_employee" >Delete Employee</a> | </li> 
+		<li class="submenu_li"><a href="home" >Pay Calculator</a> | </li> 
 	</ul>
 </div>
 <div class="hidden" id="calculated_data"></div>

@@ -1,6 +1,8 @@
 import json
 from pyramid.view import view_config
 import pyramid.httpexceptions as exc
+from pyramid.httpexceptions import HTTPFound
+
 from pay_calculator.models import user_model as User
 
 
@@ -24,21 +26,20 @@ def logout(request):
 @view_config(route_name='register', renderer='../templates/user/register.mako')
 def register(request):
 	firstname = request.params.get('firstname')
-	lastname = request.params.get('lastname')
 	password = request.params.get('password')
 	password2 = request.params.get('password2')
 	email = request.params.get('email')
 	confirmation_msg = ''
 
-	if  ((firstname == '') and (lastname == '') and (email == '')) or ((firstname is None) and (lastname is None) and (email is None)):
-		return {'project':'PAY CALCULATOR','firstname':firstname,'lastname':lastname,'email':email,'confirmation_msg': confirmation_msg,'username':''}
+	if  ((firstname == '') and (email == '')) or ((firstname is None) and (email is None)):
+		return {'project':'PAY CALCULATOR','firstname':firstname,'email':email,'confirmation_msg': confirmation_msg,'username':''}
 
-	confirmation_msg = User.register_employee(firstname,lastname,email,password,password2)
+	confirmation_msg = User.register_employee(firstname,email,password,password2)
 
 	if confirmation_msg =='Successfully created':
 		raise exc.HTTPFound(request.route_url("confirm_user_registration"))
 
-	return {'project':'PAY CALCULATOR','firstname':firstname,'lastname':lastname,'email':email,'confirmation_msg': confirmation_msg,'username':''}	
+	return {'project':'PAY CALCULATOR','firstname':firstname,'email':email,'confirmation_msg': confirmation_msg,'username':''}	
 
 @view_config(route_name='log_user', renderer='../templates/user/login_error.mako')
 def log_user(request):
@@ -55,7 +56,8 @@ def log_user(request):
 		session = request.session
 		session['username'] = email
 		session['pwd_cookie'] = pwd_cookie
-		raise exc.HTTPFound(request.route_url("home"))
+		response = HTTPFound(location='/', headers=request.response.headers)
+		return response
 
 @view_config(route_name='confirm_user_registration', renderer='../templates/user/confirm_user_registration.mako')
 def confirm_user_registration(request):

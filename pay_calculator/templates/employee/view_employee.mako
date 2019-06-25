@@ -10,6 +10,7 @@
 		<li class="submenu_li"><a href="search_employee" >Search Employee</a> | </li>
 		<li class="submenu_li"><a href="update_employee" >Update Employee</a> | </li> 
 		<li class="submenu_li"><a href="delete_employee" >Delete Employee</a> | </li> 
+		<li class="submenu_li"><a href="home" >Pay Calculator</a> | </li> 
 	</ul>
 </div>
 
@@ -22,12 +23,8 @@
 		<!-- <div class="panel panel-default tab-page "> -->
 			<div class="row">
 				<div class="input">
-					<label >Firstname</label>
+					<label >Fullname</label>
 					<input type="text" name="firstname" value="${emp_data[0]['firstname']}" disabled="disabled" style="background-color: lightgray">
-				</div>
-				<div class="input">
-					<label >Lastname</label>
-					<input type="text" name="lastname" value="${emp_data[0]['lastname']}" disabled="disabled" style="background-color: lightgray">
 				</div>
 			</div>
 			

@@ -11,6 +11,7 @@
 		<li class="submenu_li"><a href="search_employee" >Search Employee</a> | </li>
 		<li class="submenu_li"><a href="update_employee" >Update Employee</a> | </li> 
 		<li class="submenu_li"><a href="delete_employee" >Delete Employee</a> | </li> 
+		<li class="submenu_li"><a href="home" >Pay Calculator</a> | </li> 
 	</ul>
 </div>
 
@@ -23,12 +24,8 @@
 			<div class="row">
 				<input type="hidden" name="emp_id" value="${emp_data[0]['employee_id']}" id="emp_id">
 				<div class="input">
-					<label >Firstname</label>
+					<label >Fullname</label>
 					<input type="text" name="firstname" value="${emp_data[0]['firstname']}" id="firstname">
-				</div>
-				<div class="input">
-					<label >Lastname</label>
-					<input type="text" name="lastname" value="${emp_data[0]['lastname']}" id="lastname">
 				</div>
 			</div>
 			

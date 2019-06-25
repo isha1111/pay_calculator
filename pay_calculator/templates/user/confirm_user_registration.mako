@@ -8,3 +8,7 @@
 <div style="text-align: center;font-size: 21px;padding-top: 20px;">
 	Successfully created user.
 </div>
+
+<div style="text-align: center;font-size: 21px;padding-top: 20px;">
+	Click <a href="/login">here</a> to login.
+</div>

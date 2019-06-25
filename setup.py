@@ -19,7 +19,8 @@ requires = [
     'openpyxl',
     'psycopg2-binary',
     'pdfrw',
-    'pyPDF2'
+    'pyPDF2',
+    'pdfkit'
 ]
 
 tests_require = [

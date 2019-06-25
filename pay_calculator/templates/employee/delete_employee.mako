@@ -11,7 +11,8 @@
 		<li class="submenu_li"><a href="employee_add" >Add Employee</a> | </li>
 		<li class="submenu_li"><a href="search_employee" >Search Employee</a> | </li>
 		<li class="submenu_li"><a href="update_employee" >Update Employee</a> | </li> 
-		<li class="submenu_li"><a href="delete_employee" >Delete Employee</a> | </li> 
+		<li class="submenu_li"><a href="delete_employee" >Delete Employee</a> | </li>
+		<li class="submenu_li"><a href="home" >Pay Calculator</a> | </li> 
 	</ul>
 </div>
 <div class="title" id="employee_add_title">
@@ -22,16 +23,9 @@
 		<!-- <div class="panel panel-default tab-page "> -->
 			<div class="row">
 				<div class="input">
-					<label>Firstname</label>
+					<label>Fullname</label>
 					<input type="text" name="firstname" v-model="firstname">
 				</div>
-				<div class="input">
-					<label >Lastname</label>
-					<input type="text" name="lastname" v-model="lastname">
-				</div>
-			</div>
-
-			<div class="row">
 				<div class="input">
 					<label>Security License</label>
 					<input type="text" name="security_license" v-model="security_license">
@@ -50,7 +44,6 @@
 		<table >
 			<tr>
 				<th>Firstname</th>
-				<th>Lastname</th>
 				<th>Email</th>
 				<th>Phone</th>
 				<th>Security License</th>
@@ -59,9 +52,6 @@
 			<tr v-for="row in search_result">
 				<td>
 					{{row["firstname"]}}
-				</td>
-				<td>
-					{{row["lastname"]}}
 				</td>
 				<td>
 					{{row["email"]}}
@@ -97,7 +87,7 @@
 		},
 		methods: {
 			fetch_employee: function() {
-				var url = '/fetch_employee?firstname='+this.firstname+'&lastname='+this.lastname+'&security_license='+this.security_license;
+				var url = '/fetch_employee?firstname='+this.firstname+'&security_license='+this.security_license;
 				axios.get(url).then(function(result){
 					if(result["data"].length != 0){
 						app.show_search_results = true;

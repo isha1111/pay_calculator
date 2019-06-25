@@ -31,7 +31,6 @@ def employee_save(request):
 	if not auth_check_pass:
 		raise exc.HTTPFound(request.route_url("login"))
 	firstname = request.params.get('firstname')
-	lastname = request.params.get('lastname')
 	dob = request.params.get('dob')
 	gender = request.params.get('gender')
 	phone = request.params.get('phone')
@@ -44,7 +43,7 @@ def employee_save(request):
 	account = request.params.get('account')
 	notes = request.params.get('notes')
 	try:
-		Employee.add_employee_to_database(firstname,lastname,dob,gender,phone,email,security_license,security_license_expiry,awards,baserate,bsb,account,notes)
+		Employee.add_employee_to_database(firstname,dob,gender,phone,email,security_license,security_license_expiry,awards,baserate,bsb,account,notes)
 		result = 'Successfully saved'
 	except:
 		result = 'Something went wrong'
@@ -59,7 +58,6 @@ def save_updated_employee(request):
 	emp_id = request.params.get('emp_id')
 	print(emp_id)
 	firstname = request.params.get('firstname')
-	lastname = request.params.get('lastname')
 	dob = request.params.get('dob')
 	gender = request.params.get('gender')
 	phone = request.params.get('phone')
@@ -71,7 +69,7 @@ def save_updated_employee(request):
 	bsb = request.params.get('bsb')
 	account = request.params.get('account')
 	notes = request.params.get('notes')
-	result = Employee.save_updated_employee(emp_id,firstname,lastname,dob,gender,phone,email,security_license,security_license_expiry,awards,baserate,bsb,account,notes)
+	result = Employee.save_updated_employee(emp_id,firstname,dob,gender,phone,email,security_license,security_license_expiry,awards,baserate,bsb,account,notes)
 	return result
 
 @view_config(route_name='send_guard_reminder', renderer='../templates/employee/send_guard_reminder.mako')
@@ -148,7 +146,6 @@ def fetch_employee(request):
 	if not auth_check_pass:
 		raise exc.HTTPFound(request.route_url("login"))
 	firstname = request.params.get('firstname')
-	lastname = request.params.get('lastname')
 	security_license = request.params.get('security_license')
-	data = Employee.find_employee(firstname,lastname,security_license)
+	data = Employee.find_employee(firstname,security_license)
 	return json.dumps(data)

@@ -22,12 +22,12 @@ import json
 		<form method="post" action="/register">
 			<div class="row">
 				<div class="input">
-					<label class="required">Firstname</label>
+					<label class="required">Fullname</label>
 					<input type="text" name="firstname" v-model="firstname" required="true">
 				</div>
 				<div class="input">
-					<label class="required">Lastname</label>
-					<input type="text" name="lastname" v-model="lastname" required="true">
+					<label class="required">Email</label>
+					<input type="email" name="email" v-model="email" required="true">
 				</div>
 				<div class="input">
 					<label class="required">Password</label>
@@ -37,10 +37,7 @@ import json
 					<label class="required">Confirm password</label>
 					<input type="password" name="password2" required="true">
 				</div>
-				<div class="input">
-					<label class="required">Email</label>
-					<input type="email" name="email" v-model="email" required="true">
-				</div>
+				
 			</div>
 			
 			<div style="text-align: center;">
@@ -63,7 +60,6 @@ import json
 		el: '#container',
 		data: {
 			'firstname': ${json.dumps(firstname) | n},
-			'lastname': ${json.dumps(lastname) | n},
 			'email': ${json.dumps(email) | n},
 			'confirmation_msg': ${json.dumps(confirmation_msg) | n}
 		},

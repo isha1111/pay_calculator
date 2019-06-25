@@ -1,0 +1,43 @@
+#form_div{
+	margin-top: 40px;
+	margin-bottom: 40px;
+	border: 1px solid black;
+	width: 1000px;
+	padding:30px;
+}
+
+#container {
+	/*text-align: center;*/
+}
+
+#paid_by {
+	display: inline-block;
+    height: 80px;
+}
+
+#emp_details {
+	display: inline-block;
+	float: right;
+}
+
+.inline {
+	display: inline-block;
+	padding-right: 45px;
+}
+
+td{
+	border: none !important;
+	width: 150px;
+}
+
+.gray {
+	background-color: lightgray;
+}
+
+tr{
+	height: 20px;
+}
+
+.header_top, .footer{
+	display: none;
+}

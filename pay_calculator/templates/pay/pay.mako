@@ -24,3 +24,8 @@ ${pay}
 <div id="pay">
 	Please wait pay is being calculated ...
 </div>
+
+<div id="loading">
+	<div id="loading_msg">Please wait ...</div>	
+  <img id="loading-image" src="/static/images/loading.svg" alt="Loading..." />
+</div>

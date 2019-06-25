@@ -20,6 +20,8 @@ def includeme(config):
 	config.add_route('confirm_user_registration','/confirm_user_registration')
 	config.add_route('register','/register')
 	config.add_route('log_user','/log_user')
+	config.add_route('payslip','/payslip')
+	config.add_route('send_payslip','/send_payslip')
 	config.add_route('save_updated_employee','/save_updated_employee')
 	config.add_route('delete_employee_from_database','/delete_employee_from_database')
 	

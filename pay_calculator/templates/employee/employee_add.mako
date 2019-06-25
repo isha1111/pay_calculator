@@ -12,6 +12,7 @@
 		<li class="submenu_li"><a href="search_employee" >Search Employee</a> | </li>
 		<li class="submenu_li"><a href="update_employee" >Update Employee</a> | </li> 
 		<li class="submenu_li"><a href="delete_employee" >Delete Employee</a> | </li> 
+		<li class="submenu_li"><a href="home" >Pay Calculator</a> | </li> 
 	</ul>
 </div>
 
@@ -32,13 +33,13 @@
 		<!-- <div class="panel panel-default tab-page "> -->
 			<div class="row">
 				<div class="input">
-					<label class="required">Firstname</label>
+					<label class="required">Fullname</label>
 					<input type="text" name="firstname">
 				</div>
-				<div class="input">
+				<!-- <div class="input">
 					<label >Lastname</label>
 					<input type="text" name="lastname">
-				</div>
+				</div> -->
 			</div>
 			
 			<div class="row">

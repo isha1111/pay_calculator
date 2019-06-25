@@ -31,7 +31,23 @@ create table payslip (
 	gross_pay varchar(50) NOT NULL,
 	net_pay varchar(50) NOT NULL,
 	tax varchar(50) NOT NULL,
-	super varchar(50) NOT NULL
+	super varchar(50) NOT NULL,
+	published_hours varchar(100),
+	published_rate varchar(100),
+	public_holiday_hours varchar(100),
+	public_holiday_rate varchar(100),
+	weekday_hours varchar(100),
+	weekday_rate varchar(100),
+	weekend_hours varchar(100),
+	weekend_rate varchar(100),
+	hourly_hours varchar(100),
+	hourly_rate varchar(100),
+	saturday_hours varchar(100),
+	saturday_rate varchar(100),
+	sunday_hours varchar(100),
+	sunday_rate varchar(100),
+	night_span_hours varchar(100),
+	night_span_rate varchar(100)
 	);
 
 create table ytd (
@@ -48,8 +64,9 @@ create table users (
 	user_id serial primary key, 
 	username varchar(50) NOT NULL,
 	firstname varchar(20) NOT NULL,
-	lastname varchar(20) NOT NULL,
+	lastname varchar(20) ,
 	password varchar(200) NOT NULL,
 	role varchar(20),
-	creation_date varchar(20) NOT NULL
+	creation_date varchar(20) NOT NULL,
+	is_admin varchar(20) default FALSE
 );

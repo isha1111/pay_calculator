@@ -4,12 +4,16 @@ from datetime import date
 import psycopg2
 from psycopg2 import extras
 import os
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+import pdfkit
 
 # DATABASE_URL = os.environ.get('db_url', None)
 
 DATABASE_URL = 'postgres://lrfdzdjpnximyq:3f1ddb578e598f054626ac0754752cb27d27d14e492aaab2a3b71dcdf50d4265@ec2-54-235-77-0.compute-1.amazonaws.com:5432/dvq1qp8vsr5hr'
 
-def register_employee(firstname,lastname,email,password,password2):
+def register_employee(firstname,email,password,password2):
 	
 	role = 'normal'
 	creation_date = date.today().strftime('%d-%m-%Y')
@@ -43,7 +47,7 @@ def register_employee(firstname,lastname,email,password,password2):
 	sha1_password = m.hexdigest()
 
 	
-	cursor.execute("insert into users (firstname,lastname,username,password,role,creation_date) values (%s,%s,%s,%s,%s,%s)",(firstname.lower(),lastname.lower(),email.lower(),sha1_password,role,creation_date))
+	cursor.execute("insert into users (firstname,username,password,role,creation_date) values (%s,%s,%s,%s,%s)",(firstname.lower(),email.lower(),sha1_password,role,creation_date))
 	conn.commit()
 	cursor.close()
 	conn.close()
@@ -81,3 +85,38 @@ def find_user(email,password):
 	else:
 		return None
 
+def is_admin(username):
+	username = username.lower()
+	conn = psycopg2.connect(DATABASE_URL, sslmode='require')
+	cursor = conn.cursor()
+
+	cursor.execute("select is_admin from users where username = %s ",(username,))
+	
+	result = cursor.fetchone()
+	print(result)
+
+	return result[0]
+
+def get_email_for_employee(firstname,start_date):
+	url = 'http://localhost:6543/payslip?firstname='+firstname+'&start_date='+start_date
+	# config = pdfkit.configuration(wkhtmltopd'/Users/nagpal/Downloads/JMD/abc/lib/python3.7/site-packages/wkhtmltopdf')
+	pdf = pdfkit.from_url(url, False)
+
+	guard_email = 'isha.negi19@gmail.com'
+	email = os.environ.get('from_email', None)
+	pwd = os.environ.get('from_password', None)
+
+	s = smtplib.SMTP('smtp.office365.com','587')
+	s.starttls()
+	s.login(email, pwd)
+
+	msg = MIMEMultipart()
+	msg['From'] = email
+	msg['To'] = guard_email
+	msg['Subject'] = 'Payslip'
+	body = MIMEText('Dear '+ firstname.upper() , 'plain')
+	msg.attach(body)
+	msg.attach(MIMEText(file(pdf).read()))
+	s.sendmail(email,guard_email, msg.as_string())
+	s.quit()
+	return True
