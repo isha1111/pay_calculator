@@ -10,6 +10,7 @@ with open(os.path.join(here, 'CHANGES.txt')) as f:
 
 requires = [
     'plaster_pastedeploy',
+    'setuptools == 39.2.0'
     'pyramid',
     'pyramid_mako',
     'pyramid_debugtoolbar',
@@ -22,8 +23,7 @@ requires = [
     'pyPDF2',
     'pdfkit == 0.6.1',
     'cairocffi == 0.9.0',
-    'weasyprint == 48',
-    'setuptools == 39.2.0'
+    'weasyprint == 48'
 ]
 
 tests_require = [
