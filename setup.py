@@ -21,6 +21,7 @@ requires = [
     'psycopg2-binary',
     'pdfrw',
     'pyPDF2',
+    'tinycss2 == 0.60',
     'pdfkit == 0.6.1',
     'cairocffi == 0.9.0',
     'weasyprint == 43'
