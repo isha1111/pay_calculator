@@ -21,6 +21,7 @@ requires = [
     'pdfrw',
     'pyPDF2',
     'pdfkit',
+    'cairocffi',
     'weasyprint'
 ]
 
