@@ -20,7 +20,8 @@ requires = [
     'psycopg2-binary',
     'pdfrw',
     'pyPDF2',
-    'pdfkit'
+    'pdfkit',
+    'weasyprint'
 ]
 
 tests_require = [

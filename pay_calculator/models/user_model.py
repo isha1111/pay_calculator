@@ -5,9 +5,16 @@ import psycopg2
 from psycopg2 import extras
 import os
 import smtplib
+from email import encoders
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from email.mime.base import MIMEBase
 import pdfkit
+
+from weasyprint import HTML, CSS
+from email.message import EmailMessage
+
+
 
 # DATABASE_URL = os.environ.get('db_url', None)
 
@@ -97,26 +104,39 @@ def is_admin(username):
 
 	return result[0]
 
-def get_email_for_employee(firstname,start_date):
-	url = 'http://localhost:6543/payslip?firstname='+firstname+'&start_date='+start_date
-	# config = pdfkit.configuration(wkhtmltopd'/Users/nagpal/Downloads/JMD/abc/lib/python3.7/site-packages/wkhtmltopdf')
-	pdf = pdfkit.from_url(url, False)
+def get_email_for_employee(firstname,start_date,end_date,response):
+	from io import StringIO
+	url = 'http://localhost:6543/payslip?firstname='+firstname+'&start_date='+start_date+'&end_date='+end_date
 
-	guard_email = 'isha.negi19@gmail.com'
-	email = os.environ.get('from_email', None)
+	guard_email = os.environ.get('from_email', None)
+	email  = os.environ.get('from_email', None)
 	pwd = os.environ.get('from_password', None)
 
-	s = smtplib.SMTP('smtp.office365.com','587')
+	s = smtplib.SMTP('smtp.gmail.com','587')
 	s.starttls()
 	s.login(email, pwd)
 
+	import urllib.request
+
+	fp = urllib.request.urlopen(url)
+	mybytes = fp.read()
+	mystr = mybytes.decode("utf8")
+	fp.close()
+
+	css = CSS(string='@page { size: A3; margin: 1cm }')
+	pdf = HTML(url).write_pdf(stylesheets=[css])
+
 	msg = MIMEMultipart()
+
+	msg['Subject'] = 'Payslip for ' +start_date 
 	msg['From'] = email
-	msg['To'] = guard_email
-	msg['Subject'] = 'Payslip'
-	body = MIMEText('Dear '+ firstname.upper() , 'plain')
-	msg.attach(body)
-	msg.attach(MIMEText(file(pdf).read()))
-	s.sendmail(email,guard_email, msg.as_string())
-	s.quit()
-	return True
+	msg['To'] = email
+
+	part = MIMEBase('application', "octet-stream")
+	part.set_payload(pdf)
+	encoders.encode_base64(part)
+
+	part.add_header('Content-Disposition', 'attachment; filename="text.pdf"')
+	msg.attach(MIMEText("Dear "+ firstname.upper() +",\r\n\r\nPlease find your attached payslip.\r\n"))
+	msg.attach(part)
+	s.sendmail(email, email, msg.as_string())

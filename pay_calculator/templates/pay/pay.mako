@@ -21,6 +21,14 @@
 ${pay}
 </div>
 
+<div id="hidden_start_date" class="hidden"> 
+${fortnight_start}
+</div>
+
+<div id="hidden_end_date" class="hidden"> 
+${fortnight_end}
+</div>
+
 <div id="pay">
 	Please wait pay is being calculated ...
 </div>

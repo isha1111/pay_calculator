@@ -29,42 +29,80 @@ DATABASE_URL = 'postgres://lrfdzdjpnximyq:3f1ddb578e598f054626ac0754752cb27d27d1
 
 ### Assumption is made that fortnightly data is being processed ###
 
-def get_ytd_and_pay_data(firstname, start_date):
+def get_ytd_and_pay_data(firstname, start_date,end_date):
+	year_start = start_date.split("/")[0]
+	year_end = end_date.split("/")[0]
+	ytd_year = year_start
+
+	if year_start == year_end:
+		if(end_date < ytd_date):
+			ytd_year = year_start - 1
+	
 	conn = psycopg2.connect(DATABASE_URL, sslmode='require')
 	cursor = conn.cursor()
 	cursor.execute('select * from payslip where firstname = %s and fortnight_start = %s',(firstname,start_date))
 	raw_sql =cursor.mogrify('select * from payslip where firstname = %s and fortnight_start = %s',(firstname,start_date))
-	pay_data = cursor.fetchone()
+	pay_data = cursor.fetchall()
 	cursor.close()
 	conn.close()
 
-	firstname = pay_data[1]
-	fortnight_start = pay_data[3]
-	fortnight_end = pay_data[4]
-	gross_pay = round(float(pay_data[5]),2)
-	net_pay = round(float(pay_data[6]),2)
-	tax = round(float(pay_data[7]),2)
-	super_amount = round(float(pay_data[8]),2)
-	published_hours = pay_data[9]
-	published_rate = pay_data[10]
-	public_holiday_hours = pay_data[11]
-	public_holiday_rate = pay_data[12]
-	weekday_hours = pay_data[13]
-	weekday_rate = pay_data[14]
-	weekend_hours = pay_data[15]
-	weekend_rate = pay_data[16]
-	hourly_hours = pay_data[17]
-	hourly_rate = pay_data[18]
-	saturday_hours = pay_data[19]
-	saturday_rate = pay_data[20]
-	sunday_hours = pay_data[21]
-	sunday_rate = pay_data[22]
-	night_span_hours = pay_data[23]
-	night_span_rate = pay_data[24]
+	gross_pay = 0
+	net_pay = 0
+	tax = 0
+	super_amount = 0
+	published_hours = 0
+	public_holiday_hours = 0
+	weekday_hours = 0
+	weekend_hours = 0
+	hourly_hours = 0
+	saturday_hours = 0
+	sunday_hours = 0
+	night_span_hours = 0
+	published_rate = 0
+	public_holiday_rate = 0
+	weekday_rate = 0
+	weekend_rate = 0
+	hourly_rate = 0
+	saturday_rate = 0
+	sunday_rate = 0
+	night_span_rate = 0
+
+	for row in pay_data:
+		firstname = row[1]
+		fortnight_start = row[3]
+		fortnight_end = row[4]
+		gross_pay += round(float(row[5]),2)
+		net_pay += round(float(row[6]),2)
+		tax += round(float(row[7]),2)
+		super_amount += round(float(row[8]),2)
+		if row[9] != '':
+			published_hours += float(row[9])
+			published_rate = float(row[10])
+		if row[11] != '':	
+			public_holiday_hours += float(row[11])
+			public_holiday_rate = float(row[12])
+		if row[13] != '':
+			weekday_hours += float(row[13])
+			weekday_rate = float(row[14])
+		if row[15] != '':
+			weekend_hours += float(row[15])
+			weekend_rate = float(row[16])
+		if row[17] != '':
+			hourly_hours += float(row[17])
+			hourly_rate = float(row[18])
+		if row[19] != '':
+			saturday_hours += float(row[19])
+			saturday_rate = float(row[20])
+		if row[21] != '':
+			sunday_hours += float(row[21])
+			sunday_rate = float(row[22])
+		if row[23] != '':
+			night_span_hours += float(row[23])
+			night_span_rate = float(row[24])
 
 	conn = psycopg2.connect(DATABASE_URL, sslmode='require')
 	cursor = conn.cursor()
-	cursor.execute('select * from ytd where employee_id = (select employee_id from employees where firstname = %s) and start_year = %s',(firstname,'2018'))
+	cursor.execute('select * from ytd where employee_id = (select employee_id from employees where firstname = %s) and start_year = %s',(firstname,ytd_year))
 	ytd_data = cursor.fetchone()
 	cursor.close()
 	conn.close()
@@ -90,12 +128,19 @@ def calculate_jmd_eba_rate(roaster_data, state):
 
 	
 	pay = {}
+	total_dates = []
 	header = 'Officer full name','Published start date','Published start','Published end','Published actual hours','Published location name','Client name','Officer - Bank Account Name','Officer - BSB','Officer - Bank Account Number'
 	
 	roaster_dict = {}
 
 	for row in roaster_row_list:
 		data = row.split(",")
+
+		if data[0] == '':
+			continue
+
+		if data[1] == '"':
+			data.pop(1)
 
 		guard_name = data[0].lower()
 		if guard_name == '':
@@ -140,6 +185,7 @@ def calculate_jmd_eba_rate(roaster_data, state):
 			guard_start_time = shift['start_time']
 			guard_end_time = shift['end_time']
 			published_hours = shift['published_hours']
+			total_dates.append(guard_shift_day)
 
 			# check day
 			year, month, day = (int(x) for x in guard_shift_day.split('/'))   
@@ -380,9 +426,13 @@ def calculate_jmd_eba_rate(roaster_data, state):
 		temp_obj["net_pay"] = temp_obj["total_amount"] - temp_obj["tax"]
 		temp_obj["guard_shift_day"] = guard_shift_day
 		pay[guard_name].append(temp_obj)
+
+	total_dates = list(set(total_dates))
+	fortnight_start = min(total_dates)
+	fortnight_end = max(total_dates)
     	
 	# save_payslip_data(pay,total_dates)
-	return json.dumps(pay)
+	return [json.dumps(pay),fortnight_start,fortnight_end]
 
 def calculate_tax(pay_amount):
 	# calculate for 52 weeks
@@ -425,12 +475,19 @@ def calculate_awards_rate(roaster_data, state):
 	# day_start_time = datetime.strptime('00:00:00', '%H:%M:%S')
 
 	pay = {}
+	total_dates = []
 	header = 'Officer full name','Published start date','Published start','Published end','Published actual hours','Published location name','Client name','Officer - Bank Account Name','Officer - BSB','Officer - Bank Account Number,level'
 	
 	roaster_dict = {}
 
 	for row in roaster_row_list:
 		data = row.split(",")
+
+		if data[0] == '':
+			continue
+
+		if data[1] == '"':
+			data.pop(1)
 
 		guard_name = data[0].lower()
 		if guard_name == '':
@@ -442,6 +499,9 @@ def calculate_awards_rate(roaster_data, state):
 		published_hours = data[4]
 		level = data[10]
 
+		if level not in [1,2,3,4,5]:
+			level = 1
+		
 		if guard_name not in roaster_dict:
 			roaster_dict[guard_name] = []
 
@@ -481,6 +541,7 @@ def calculate_awards_rate(roaster_data, state):
 			guard_end_time = shift['end_time']
 			published_hours = shift['published_hours']
 			level = shift['level']
+			total_dates.append(guard_shift_day)
 
 			if level == 1:
 				hourly_pay_rate = 21.26
@@ -691,7 +752,11 @@ def calculate_awards_rate(roaster_data, state):
 		temp_obj["sick_leave"] = calculate_sick_leave(total_worked_hours)
 		temp_obj["net_pay"] = temp_obj["total_amount"] - temp_obj["tax"]
 		pay[guard_name].append(temp_obj)
-	return json.dumps(pay)
+
+		total_dates = list(set(total_dates))
+		fortnight_start = min(total_dates)
+		fortnight_end = max(total_dates)
+	return [json.dumps(pay), fortnight_start,fortnight_end]
 
 def calculate_rss_rate(roaster_data, state):
 	roaster_data_list = roaster_data.split("\n")
@@ -700,12 +765,19 @@ def calculate_rss_rate(roaster_data, state):
 	day_end_time = datetime.strptime('00:00:00', '%H:%M:%S')
 
 	pay = {}
+	total_dates = []
 	header = 'Officer full name','Published start date','Published start','Published end','Published actual hours','Published location name','Client name','Officer - Bank Account Name','Officer - BSB','Officer - Bank Account Number,level'
 	
 	roaster_dict = {}
 
 	for row in roaster_row_list:
 		data = row.split(",")
+
+		if data[0] == '':
+			continue
+
+		if data[1] == '"':
+			data.pop(1)
 
 		guard_name = data[0].lower()
 		if guard_name == '':
@@ -716,6 +788,9 @@ def calculate_rss_rate(roaster_data, state):
 		end_time = data[3]
 		published_hours = data[4]
 		level = data[10]
+
+		if level not in [1,2,3,4,5]:
+			level = 1
 
 		if guard_name not in roaster_dict:
 			roaster_dict[guard_name] = []
@@ -753,6 +828,7 @@ def calculate_rss_rate(roaster_data, state):
 			guard_end_time = shift['end_time']
 			published_hours = shift['published_hours']
 			level = shift['level']
+			total_dates.append(guard_shift_day)
 
 			# check day
 			year, month, day = (int(x) for x in guard_shift_day.split('/'))   
@@ -859,7 +935,11 @@ def calculate_rss_rate(roaster_data, state):
 		temp_obj["net_pay"] = temp_obj["total_amount"] - temp_obj["tax"]
 		temp_obj["super"] = calculate_super(total_pay)
 		pay[guard_name].append(temp_obj)
-	return json.dumps(pay)
+
+		total_dates = list(set(total_dates))
+		fortnight_start = min(total_dates)
+		fortnight_end = max(total_dates)
+	return [json.dumps(pay),fortnight_start,fortnight_end]
 
 def calculate_super(pay_amount):
 	super = pay_amount * .095
@@ -933,11 +1013,7 @@ def save_leave_data(pay):
 	cursor.close()
 	conn.close()
 
-def save_payslip_data(pay,dates):
-	dates = list(set(dates))
-
-	fortnight_start = min(dates)
-	fortnight_end = max(dates)
+def save_payslip_data(pay,fortnight_start,fortnight_end):
 
 	firstname_list = []	
 	
@@ -1027,18 +1103,12 @@ def save_payslip_data(pay,dates):
 	if year_start == year_end:
 		ytd_date = '30/6/'+year_end
 		# 1. when start date > 30 Jun
-		if(fortnight_start >= ytd_date):
+		if(fortnight_end >= ytd_date):
 			year_end = year_end + 1
 		# 2. when end date < 30 Jun
-		elif(fortnight_end <= ytd_date):
-			year_start = year_start - 1
 		else:
-			# need to split forntnight ytd
-			year_start1 = (year_start - 1)
-			year_end1 = year_end
+			year_start = year_start - 1
 
-			year_start2 = year_start
-			year_end2 = (year_end + 1)
 
 	if year_start1 == '':
 		# get the exsiting ytd data
@@ -1106,84 +1176,6 @@ def save_payslip_data(pay,dates):
 			cursor.executemany("update ytd set pay = %(gross_pay)s, tax = %(tax)s, super_amount = %(super_amount)s where ytd_id = %(ytd_id)s", tuple(rows))
 			conn.commit()
 
-	else:
-		# get the exsiting ytd data for year start1
-		cursor.execute("select ytd.ytd_id,ytd.pay,ytd.tax,ytd.super_amount, employees.firstname from ytd left join employees on ytd.employee_id = employees.employee_id where employees.firstname in %s and ytd.start_year = %s", (tuple(firstname_list),year_start1))
-		result = cursor.fetchall()
-
-		for row in result:
-			db_ytd_id1.append(row[0])
-			db_pay1.append(float(row[1]))
-			db_tax1.append(float(row[2]))
-			db_super1.append(float(row[3]))
-			db_firstname1.append(row[4])
-
-		for key in pay:
-			fname = key
-			if fname not in db_firstname1:
-				not_db_firstname1.append(fname)
-
-		cursor.execute("select employee_id,firstname from employees where firstname in %s",(tuple(not_db_firstname1),))
-		result = cursor.fetchall()
-
-		employee_to_id = {}
-
-		for row in result:
-			employee_to_id[row[1]]=row[0]
-
-		for key in pay:
-			first_name = key
-			gross_pay = pay[key][0]['total_amount']
-			net_pay = pay[key][0]['net_pay']
-			super_amount = pay[key][0]['super']
-			tax = pay[key][0]['tax']
-
-		# if not present create ytd data
-			if first_name not in db_firstname1:
-				e_id = employee_to_id[first_name]
-				values1 = (e_id,year_start1,year_end1,gross_pay,tax,super_amount)
-				values_list_ytd1.append(values1)
-				values2 = (e_id,year_start2,year_end2,gross_pay,tax,super_amount)
-				values_list_ytd2.append(values2)
-
-			else:
-				temp_obj = {}
-				index = db_firstname1.index(first_name)
-				temp_obj["ytd_id"] = db_ytd_id1[index]
-				temp_obj["year_start"] = year_start1
-				temp_obj["year_end"]= year_end1
-				temp_obj["gross_pay"] = float(db_pay1[index] + gross_pay)
-				temp_obj["tax"] = float(db_tax1[index] + tax)
-				temp_obj["super_amount"] = float(db_super1[index] + super_amount)
-				rows.append(temp_obj)
-
-		# create
-		if len(values_list_ytd1) != 0:	
-			extras.execute_values(cursor,"insert into ytd (employee_id,start_year,end_year,pay,tax,super_amount) values %s", values_list_ytd1)
-			conn.commit()
-
-		# update
-		if len(rows) != 0:
-			cursor.executemany("update ytd set pay = %(gross_pay)s, tax = %(tax)s, super_amount = %(super_amount)s where ytd_id = %(ytd_id)s", tuple(rows))
-			conn.commit()
-
-		# get the exsiting ytd data for year start2
-		if len(values_list_ytd2) != 0:	
-			extras.execute_values(cursor,"insert into ytd (employee_id,start_year,end_year,pay,tax,super_amount) values %s", values_list_ytd2)
-			conn.commit()
-
-
-	# INVOICE_TEMPLATE_PATH = 'https://github.com/isha1111/pay_calculator/blob/master/pay_calculator/models/payslip_template.pdf'
-	# INVOICE_OUTPUT_PATH = '/Users/inagpal/Downloads/JMD/payslip.pdf'
-
-	# data_dict = {
-	#    'company_name': 'Bostata',
-	#    'guard_name': 'Abhishek S',
-	   
-	# }
-
-	# write_fillable_pdf(INVOaICE_TEMPLATE_PATH, INVOICE_OUTPUT_PATH, data_dict)
-
 	cursor.close()
 	conn.close()
 
@@ -1199,7 +1191,7 @@ def write_fillable_pdf(input_pdf_path, output_pdf_path, data_dict):
 
 	template_pdf = pdfrw.PdfReader(input_pdf_path)
 	annotations = template_pdf.pages[0][ANNOT_KEY]
-	print(annotations)
+	
 	for annotation in annotations:
 		if annotation[SUBTYPE_KEY] == WIDGET_SUBTYPE_KEY:
 			if annotation[ANNOT_FIELD_KEY]:

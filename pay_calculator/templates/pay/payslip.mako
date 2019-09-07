@@ -1,4 +1,3 @@
-<%inherit file="../layout.mako"/>
 <link rel="stylesheet" type="text/css" href="/static/css/employee/payslip.css">
 
 <div id="container">
@@ -46,7 +45,7 @@
 					<td></td>
 					<td></td>
 				</tr>
-				% if payslip_data[10] != '':
+				% if payslip_data[10] != 0:
 				<tr>
 					<td>Ordinary Hours</td>
 					<td></td>
@@ -60,7 +59,7 @@
 					<td></td>
 				</tr>
 				% endif
-				% if payslip_data[12] != '':
+				% if payslip_data[12] != 0:
 				<tr>
 					<td>Public Holiday Hours</td>
 					<td></td>
@@ -74,7 +73,7 @@
 					<td></td>
 				</tr>
 				% endif
-				% if payslip_data[14] != '':
+				% if payslip_data[14] != 0:
 				<tr>
 					<td>Weekday Hours</td>
 					<td></td>
@@ -88,7 +87,7 @@
 					<td></td>
 				</tr>
 				% endif
-				% if payslip_data[17] != '':
+				% if payslip_data[16] != 0:
 				<tr>
 					<td>Weekday Hours</td>
 					<td></td>
@@ -102,7 +101,7 @@
 					<td></td>
 				</tr>
 				% endif
-				% if payslip_data[19] != '':
+				% if payslip_data[18] != 0:
 				<tr>
 					<td>Normal Hours</td>
 					<td></td>
@@ -116,7 +115,7 @@
 					<td></td>
 				</tr>
 				% endif
-				% if payslip_data[21] != '':
+				% if payslip_data[20] != 0:
 				<tr>
 					<td>Saturday Hours</td>
 					<td></td>
@@ -130,7 +129,7 @@
 					<td></td>
 				</tr>
 				% endif
-				% if payslip_data[23] != '':
+				% if payslip_data[22] != 0:
 				<tr>
 					<td>Sunday Hours</td>
 					<td></td>
@@ -144,7 +143,7 @@
 					<td></td>
 				</tr>
 				% endif
-				% if payslip_data[25] != '':
+				% if payslip_data[24] != 0:
 				<tr>
 					<td>Night Hours</td>
 					<td></td>
