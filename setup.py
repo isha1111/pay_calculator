@@ -10,7 +10,7 @@ with open(os.path.join(here, 'CHANGES.txt')) as f:
 
 requires = [
     'plaster_pastedeploy',
-    'setuptools == 39.2.0'
+    'setuptools == 39.2.0',
     'pyramid',
     'pyramid_mako',
     'pyramid_debugtoolbar',
