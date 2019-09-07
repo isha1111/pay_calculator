@@ -20,7 +20,7 @@ requires = [
     'psycopg2-binary',
     'pdfrw',
     'pyPDF2',
-    'pdfkit',
+    'pdfkit == 0.6.1',
     'cairocffi >= 0.9.0',
     'weasyprint'
 ]
