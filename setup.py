@@ -23,7 +23,7 @@ requires = [
     'pyPDF2',
     'pdfkit == 0.6.1',
     'cairocffi == 0.9.0',
-    'weasyprint == 48'
+    'weasyprint == 43'
 ]
 
 tests_require = [
