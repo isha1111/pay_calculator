@@ -21,8 +21,8 @@ requires = [
     'pdfrw',
     'pyPDF2',
     'pdfkit == 0.6.1',
-    'cairocffi == 1.1.0',
-    'weasyprint == 47'
+    'cairocffi == 0.9.0',
+    'weasyprint == 48'
 ]
 
 tests_require = [
