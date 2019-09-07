@@ -22,7 +22,7 @@ requires = [
     'pdfrw',
     'pyPDF2',
     'pdfkit == 0.6.1',
-    'cairocffi == 0.9.0',
+    'cairocffi == 1.1.0',
     'weasyprint == 48'
 ]
 
