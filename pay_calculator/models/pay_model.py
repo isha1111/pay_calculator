@@ -114,7 +114,7 @@ def get_ytd_and_pay_data(firstname, start_date,end_date):
 	return [firstname.title(),fortnight_start,fortnight_end,gross_pay,net_pay,tax,super_amount,ytd_pay,ytd_tax,ytd_super_amount,published_hours,published_rate,public_holiday_hours,public_holiday_rate,weekday_hours,weekday_rate,weekend_hours,weekend_rate,hourly_hours,hourly_rate,saturday_hours,saturday_rate,sunday_hours,sunday_rate,night_span_hours,night_span_rate]
 
 def calculate_jmd_eba_rate(roaster_data, state):	
-	public_day_payrate = 50.53
+	public_day_payrate = 54.68
 	weekday_no_rotating_rate = 21
 	weekday_rotating_rate = 25
 
@@ -347,8 +347,8 @@ def calculate_jmd_eba_rate(roaster_data, state):
 			temp_obj['weekday_and_weeknight_and_weekend_rotating_rate'] = 0
 			temp_obj['leave_rate'] = leave_hours
 			temp_obj['total_published_hours'] = total_published_hours
-			temp_obj['total_published_hours_rate'] = 20.21
-			total_amount += ((20.21 * total_published_hours) + (20.21 * leave_hours))
+			temp_obj['total_published_hours_rate'] = 21.89
+			total_amount += ((21.89 * total_published_hours) + (21.89 * leave_hours))
 
 		# 2. when no weekday and weekend hours (meaning only weeknight hours in mon-fri outside 06:00 to 18:00)
 		if (weekend_hours == 0) and (weekday_hours == 0):
@@ -361,8 +361,8 @@ def calculate_jmd_eba_rate(roaster_data, state):
 			temp_obj['weekday_and_weeknight_and_weekend_rotating_rate'] = 0
 			temp_obj['leave_rate'] = leave_hours
 			temp_obj['total_published_hours'] = total_published_hours
-			temp_obj['total_published_hours_rate'] = 24.68
-			total_amount += ((24.68 * total_published_hours)+ (20.21 * leave_hours))
+			temp_obj['total_published_hours_rate'] = 26.19
+			total_amount += ((26.19 * total_published_hours)+ (21.89 * leave_hours))
 
 		# 3. when person work weeknight and weekday but no weekend
 		if(weekend_hours == 0) and (weekday_hours != 0) and (weeknight_hours != 0):
@@ -385,8 +385,8 @@ def calculate_jmd_eba_rate(roaster_data, state):
 				weeknight_hours = 0
 				temp_obj['weekday_and_weeknight_rate'] = total_published_hours
 			temp_obj['total_published_hours'] = total_published_hours
-			temp_obj['total_published_hours_rate'] = 21.11
-			total_amount += ((21.11 * total_published_hours) + (20.21 * leave_hours))
+			temp_obj['total_published_hours_rate'] = 22.37
+			total_amount += ((22.37 * total_published_hours) + (21.89 * leave_hours))
 
 		# 4. When person works weeknight and weekend and weekday
 		if((weekday_hours != 0) and (weeknight_hours != 0) and (weekend_hours != 0)) or (temp_obj is None):
@@ -402,14 +402,14 @@ def calculate_jmd_eba_rate(roaster_data, state):
 				temp_obj['weekday_and_weeknight_and_weekend_rotating_rate'] = 0
 				temp_obj['weeknight_and_weekend_rotating_rate'] = total_published_hours
 				temp_obj['total_published_hours'] = total_published_hours
-				temp_obj['total_published_hours_rate'] = 26.68
-				total_amount += ((26.68 * total_published_hours) + (20.21 * leave_hours))
+				temp_obj['total_published_hours_rate'] = 28.31
+				total_amount += ((28.31 * total_published_hours) + (21.89 * leave_hours))
 			else:
 				temp_obj['weekday_and_weeknight_and_weekend_rotating_rate'] = total_published_hours
 				temp_obj['weeknight_and_weekend_rotating_rate'] = 0
 				temp_obj['total_published_hours'] = total_published_hours
-				temp_obj['total_published_hours_rate'] = 25.12
-				total_amount += ((25.12 * total_published_hours) + (20.21 * leave_hours))
+				temp_obj['total_published_hours_rate'] = 26.65
+				total_amount += ((26.65 * total_published_hours) + (21.89 * leave_hours))
 
 		if(public_holiday_hours != 0):
 			temp_obj["public_holiday"] = public_holiday_hours
@@ -544,39 +544,39 @@ def calculate_awards_rate(roaster_data, state):
 			total_dates.append(guard_shift_day)
 
 			if level == 1:
-				hourly_pay_rate = 21.26
-				saturday_rate = 31.89
-				sunday_rate = 42.52
-				public_holiday_rate = 53.15
-				mon_fri_night_span_rate = 25.87 
+				hourly_pay_rate = 21.90
+				saturday_rate = 32.85
+				sunday_rate = 43.80
+				public_holiday_rate = 54.75
+				mon_fri_night_span_rate = 26.65 
 
 			if level == 2:
-				hourly_pay_rate = 21.87
-				saturday_rate = 32.81
-				sunday_rate = 43.74
-				public_holiday_rate = 54.68
-				mon_fri_night_span_rate = 26.62
+				hourly_pay_rate = 22.53
+				saturday_rate = 33.80
+				sunday_rate = 45.06
+				public_holiday_rate = 56.33
+				mon_fri_night_span_rate = 27.42
 
 			if level == 3:
-				hourly_pay_rate = 22.24
-				saturday_rate = 33.36
-				sunday_rate = 44.48
-				public_holiday_rate = 55.60
-				mon_fri_night_span_rate = 27.07
+				hourly_pay_rate = 22.91
+				saturday_rate = 34.37
+				sunday_rate = 45.82
+				public_holiday_rate = 57.28
+				mon_fri_night_span_rate = 27.88
 
 			if level == 4:
-				hourly_pay_rate = 22.62
-				saturday_rate = 33.93
-				sunday_rate = 45.24
-				public_holiday_rate = 56.55
-				mon_fri_night_span_rate = 27.53
+				hourly_pay_rate = 23.29
+				saturday_rate = 34.94
+				sunday_rate = 46.58
+				public_holiday_rate = 58.23
+				mon_fri_night_span_rate = 28.34
 
 			if level == 5:
-				hourly_pay_rate = 23.35
-				saturday_rate = 35.03
-				sunday_rate = 46.70
-				public_holiday_rate = 58.38
-				mon_fri_night_span_rate = 28.42
+				hourly_pay_rate = 24.05
+				saturday_rate = 36.08
+				sunday_rate = 48.10
+				public_holiday_rate = 60.13
+				mon_fri_night_span_rate = 29.27
 					
 			# check day
 			year, month, day = (int(x) for x in guard_shift_day.split('/'))   
