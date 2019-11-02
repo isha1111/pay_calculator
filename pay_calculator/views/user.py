@@ -23,6 +23,20 @@ def logout(request):
 	raise exc.HTTPFound(request.route_url("login"))
 	return {'project':'PAY CALCULATOR','username':''}
 
+@view_config(route_name='forgot_password', renderer='../templates/user/forgot_password.mako')
+def forgot_password(request):
+	return {'project':'PAY CALCULATOR','username':''}
+
+@view_config(route_name='reset_password', renderer='../templates/user/reset_password.mako')
+def reset_password(request):
+	password = request.params.get('password')
+	password2 = request.params.get('password2')
+	email = request.params.get('email')
+
+	confirmation_msg = User.update_employee(email,password,password2)
+
+	return {'project':'PAY CALCULATOR','username':'','confirmation_msg': confirmation_msg}
+
 @view_config(route_name='register', renderer='../templates/user/register.mako')
 def register(request):
 	firstname = request.params.get('firstname')

@@ -49,10 +49,22 @@
 		</select></br>
 		</br>
 		<label>Pay Type</label>
-		<select name="pay_type">
+		<select id="pay_type" name="pay_type" onchange="change_category()">
 			<option value="jmd_eba">JMD EBA</option>
 			<option value="awards">awards</option>
 			<option value="rss">RSS</option>
+		</select></br>
+		</br>
+		<label id="label_category" style="display: none">Category</label>
+		<select name="category" id="category" style="display: none">
+			<option value="security">security</option>
+			<option value="cleaning">cleaning</option>
+		</select></br>
+		</br>
+		<label id="label_job" style="display: none">Job Type</label>
+		<select id="job_type" name="job_type" style="display: none">
+			<option value="full_time">All Full Time employee</option>
+			<option value="part_time">Some Part Time employee</option>
 		</select></br>
 		<label class="label">PLEASE UPLOAD FILE HERE:</label>
 		<input type="file" id="roaster_file"  name="roaster_data"></br>
@@ -60,4 +72,21 @@
 	</form>
 </div>
 
+<script type="text/javascript">
+	function change_category() {
+		var selected_category = $('#pay_type option:selected').text();
+		if (selected_category == 'awards') {
+			$("#category").css("display","inline");
+			$("#job_type").css("display","inline");
+			$("#label_category").css("display","inline");
+			$("#label_job").css("display","inline");
+		}
+		else{
+			$("#label_category").css("display","none");
+			$("#category").css("display","none");
+			$("#label_job").css("display","none");
+			$("#job_type").css("display","none");
+		}
+	}
 
+</script>

@@ -204,14 +204,27 @@ function DrawTable_eba(file_data,start_date,end_date) {
 	$("#pay").append(str);
 }
 
-function DrawTable_awards(file_data,start_date,end_date) {
+function DrawTable_awards(file_data,start_date,end_date,category) {
 	var file_data = JSON.parse(file_data);
-	var str = "<table id='pay_table'><thead><tr><td>Guard Name</td><td>hourly</td><td>saturday</td><td>sunday</td><td>public holiday</td><td>night span</td><td>Leave hours</td><td>Total Amount</td><td>Payslip</td></tr></thead><tbody>";
+
+	if (category == 'security') {
+		var str = "<table id='pay_table'><thead><tr><td>Guard Name</td><td>hourly</td><td>saturday</td><td>sunday</td><td>public holiday</td><td>night span</td><td>Leave hours</td><td>Total Amount</td><td>Payslip</td></tr></thead><tbody>";
 	
-	for (var i = 0; i < Object.keys(file_data).length; i++) {
-			var guard_name = Object.keys(file_data)[i];
-			str += "<tr><td>"+guard_name.toUpperCase()+"</td><td>"+file_data[guard_name][0]['hourly_hours']+"</td><td>"+file_data[guard_name][0]["saturday_hours"]+"</td><td>"+file_data[guard_name][0]["sunday_hours"]+"</td><td>"+file_data[guard_name][0]["public_holiday_hours"]+"</td><td>"+file_data[guard_name][0]["night_span_hours"]+"</td><td>"+file_data[guard_name][0]["leave_hours"]+"</td><td>"+parseFloat(file_data[guard_name][0]["total_amount"]).toFixed(2)+"</td><td><a style='cursor:pointer;color:blue' onclick='sendPayslip(\""+guard_name+"\",\""+start_date+"\",\""+end_date+"\")'>Send</a></td></tr>";
+		for (var i = 0; i < Object.keys(file_data).length; i++) {
+				var guard_name = Object.keys(file_data)[i];
+				str += "<tr><td>"+guard_name.toUpperCase()+"</td><td>"+file_data[guard_name][0]['hourly_hours']+"</td><td>"+file_data[guard_name][0]["saturday_hours"]+"</td><td>"+file_data[guard_name][0]["sunday_hours"]+"</td><td>"+file_data[guard_name][0]["public_holiday_hours"]+"</td><td>"+file_data[guard_name][0]["night_span_hours"]+"</td><td>"+file_data[guard_name][0]["leave_hours"]+"</td><td>"+parseFloat(file_data[guard_name][0]["total_amount"]).toFixed(2)+"</td><td><a style='cursor:pointer;color:blue' onclick='sendPayslip(\""+guard_name+"\",\""+start_date+"\",\""+end_date+"\")'>Send</a></td></tr>";
+		}
 	}
+
+	if (category == 'cleaning') {
+		var str = "<table id='pay_table'><thead><tr><td>Guard Name</td><td>only day hours</td><td>saturday</td><td>sunday</td><td>public holiday</td><td>only night hours</td><td>Day and night hours</td><td>Leave hours</td><td>Total Amount</td><td>Payslip</td></tr></thead><tbody>";
+	
+		for (var i = 0; i < Object.keys(file_data).length; i++) {
+				var guard_name = Object.keys(file_data)[i];
+				str += "<tr><td>"+guard_name.toUpperCase()+"</td><td>"+file_data[guard_name][0]['only_day_hours']+"</td><td>"+file_data[guard_name][0]["saturday_hours"]+"</td><td>"+file_data[guard_name][0]["sunday_hours"]+"</td><td>"+file_data[guard_name][0]["public_holiday_hours"]+"</td><td>"+file_data[guard_name][0]["only_night_hours"]+"</td><td>"+file_data[guard_name][0]["day_and_night_hours"]+"</td><td>"+file_data[guard_name][0]["leave_hours"]+"</td><td>"+parseFloat(file_data[guard_name][0]["total_amount"]).toFixed(2)+"</td><td><a style='cursor:pointer;color:blue' onclick='sendPayslip(\""+guard_name+"\",\""+start_date+"\",\""+end_date+"\")'>Send</a></td></tr>";
+		}
+	}
+	
 	str +="</tbody></table>";
 	$("#pay").empty();
 	$("#pay").append(str);
@@ -235,6 +248,7 @@ $(document).ready(function(){
 
 	var pay_data = $( "#hidden_pay" ).html();
 	var pay_type = $("#pay_type").html();
+	var category = $("#category").html();
 	var start_date = $( "#hidden_start_date" ).html().replace(/\n/g, '');
 	var end_date = $( "#hidden_end_date" ).html().replace(/\n/g, '');
 	if(pay_data != '') {
@@ -243,7 +257,7 @@ $(document).ready(function(){
 			DrawTable_eba(pay_data,start_date,end_date)
 		}
 		if(pay_type == 'awards'){
-			DrawTable_awards(pay_data,start_date,end_date)
+			DrawTable_awards(pay_data,start_date,end_date,category)
 		}
 		if(pay_type == 'rss'){
 			DrawTable_rss(pay_data,start_date,end_date)

@@ -60,6 +60,34 @@ def register_employee(firstname,email,password,password2):
 	conn.close()
 	return "Successfully created"
 
+def update_employee(email,password,password2):
+	rgx = re.compile(r'\d.*?[A-Z].*?[a-z]')
+	if rgx.match(''.join(sorted(password))) and len(password) >= 6:
+		pwd = password
+	else:
+		return "Please ensure you have Uppercase letter, lowercase letter and digits in password and minimum 6 characters"
+
+	# check password are same
+	if password != password2:
+		return "Passwords don't match"
+
+	# check if user exists in DB
+	conn = psycopg2.connect(DATABASE_URL, sslmode='require')
+	cursor = conn.cursor()
+	cursor.execute("select count(*) from users where username = %s",(email.lower(),))
+	result = cursor.fetchall()
+
+	if result[0][0] == 0:
+		return "User does not exist for email - " + email
+	else:
+		m = hashlib.sha1()
+		m.update(password.encode('utf-8'))
+		sha1_password = m.hexdigest()
+		cursor.execute("update users set password = %s  where username = %s ",(sha1_password,email.lower()))
+		conn.commit()
+		cursor.close()
+		conn.close()
+		return "Successfully updated your password"
  
 def create_cookie_in_md5(username,password): #CRITICAL-2
 	username = username.lower()

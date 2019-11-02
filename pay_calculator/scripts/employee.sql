@@ -22,6 +22,22 @@ create table employees (
 	security_license_expiry varchar(50)
 	);
 
+create table site(
+	site_id serial primary key,
+	sitename varchar(200) NOT NULL,
+	notes varchar(500) 
+	);
+
+create table timesheet(
+	timesheet_id serial primary key,
+	shift_date varchar(20) NOT NULL,
+	guard_name varchar(50) NOT NULL,
+	site_name varchar(50) NOT NULL,
+	start_time varchar(10) NOT NULL,
+	end_time varchar(10) NOT NULL,
+	payable_hours  varchar(10) NOT NULL
+	);
+
 create table payslip (
 	payslip_id serial primary key, 
 	firstname varchar(50) NOT NULL, 

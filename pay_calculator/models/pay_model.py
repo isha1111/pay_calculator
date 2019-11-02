@@ -464,8 +464,8 @@ def calculate_tax(pay_amount):
 	return fortnightly_calculated_tax
 
 
-def calculate_awards_rate(roaster_data, state):
-
+def calculate_awards_rate(roaster_data, state, category,job_type):
+	print(job_type)
 	roaster_data_list = roaster_data.split("\n")
 	roaster_row_list = roaster_data_list[1:]
 
@@ -476,7 +476,10 @@ def calculate_awards_rate(roaster_data, state):
 
 	pay = {}
 	total_dates = []
-	header = 'Officer full name','Published start date','Published start','Published end','Published actual hours','Published location name','Client name','Officer - Bank Account Name','Officer - BSB','Officer - Bank Account Number,level'
+	if job_type == 'part_time':
+		header = 'Officer full name','Published start date','Published start','Published end','Published actual hours','Published location name','Client name','Officer - Bank Account Name','Officer - BSB','Officer - Bank Account Number,level,job_type'
+	else:
+		header = 'Officer full name','Published start date','Published start','Published end','Published actual hours','Published location name','Client name','Officer - Bank Account Name','Officer - BSB','Officer - Bank Account Number,level'
 	
 	roaster_dict = {}
 
@@ -499,6 +502,11 @@ def calculate_awards_rate(roaster_data, state):
 		published_hours = data[4]
 		level = data[10]
 
+		try:
+			job_type = data[11].strip('\r')
+		except:
+			job_type = ''
+
 		if level not in [1,2,3,4,5]:
 			level = 1
 		
@@ -511,251 +519,538 @@ def calculate_awards_rate(roaster_data, state):
 		temp_dict['end_time'] = end_time
 		temp_dict['published_hours'] = float(published_hours)
 		temp_dict['level'] = int(level)
+		temp_dict['job_type'] = job_type
 
 		roaster_dict[guard_name].append(temp_dict)
 
-	for guard_name in roaster_dict:
-		shifts = roaster_dict[guard_name]
-		num_of_shifts = len(shifts)
-		hourly_hours = 0
-		night_span_hours = 0
-		saturday_hours = 0
-		sunday_hours = 0
-		public_holiday_hours = 0
-		total_published_hours = 0
-		total_amount = 0
-		leave_hours = 0
+	if category == 'security' :
+		for guard_name in roaster_dict:
+			shifts = roaster_dict[guard_name]
+			num_of_shifts = len(shifts)
+			hourly_hours = 0
+			night_span_hours = 0
+			saturday_hours = 0
+			sunday_hours = 0
+			public_holiday_hours = 0
+			total_published_hours = 0
+			total_amount = 0
+			leave_hours = 0
 
-		pay[guard_name] = []
+			pay[guard_name] = []
 
-		for shift in shifts:
-			guard_shift_day = shift['shift_day']
-			type_of_leave = None
+			for shift in shifts:
+				guard_shift_day = shift['shift_day']
+				type_of_leave = None
 
-			if '-' in guard_shift_day:
-				guard_shift_day = datetime.strptime(guard_shift_day,'%Y-%m-%d').strftime('%Y/%m/%d')
-			else:
-				guard_shift_day = datetime.strptime(guard_shift_day,'%d/%m/%y').strftime('%Y/%m/%d')
-
-			guard_start_time = shift['start_time']
-			guard_end_time = shift['end_time']
-			published_hours = shift['published_hours']
-			level = shift['level']
-			total_dates.append(guard_shift_day)
-
-			if level == 1:
-				hourly_pay_rate = 21.90
-				saturday_rate = 32.85
-				sunday_rate = 43.80
-				public_holiday_rate = 54.75
-				mon_fri_night_span_rate = 26.65 
-
-			if level == 2:
-				hourly_pay_rate = 22.53
-				saturday_rate = 33.80
-				sunday_rate = 45.06
-				public_holiday_rate = 56.33
-				mon_fri_night_span_rate = 27.42
-
-			if level == 3:
-				hourly_pay_rate = 22.91
-				saturday_rate = 34.37
-				sunday_rate = 45.82
-				public_holiday_rate = 57.28
-				mon_fri_night_span_rate = 27.88
-
-			if level == 4:
-				hourly_pay_rate = 23.29
-				saturday_rate = 34.94
-				sunday_rate = 46.58
-				public_holiday_rate = 58.23
-				mon_fri_night_span_rate = 28.34
-
-			if level == 5:
-				hourly_pay_rate = 24.05
-				saturday_rate = 36.08
-				sunday_rate = 48.10
-				public_holiday_rate = 60.13
-				mon_fri_night_span_rate = 29.27
-					
-			# check day
-			year, month, day = (int(x) for x in guard_shift_day.split('/'))   
-			day_number = datetime(year, month, day).weekday()
-
-			if ':' in guard_start_time:
-				guard_start_time_object = datetime.strptime(guard_start_time, '%H:%M:%S')
-				if guard_end_time == '0:00:00':
-					guard_end_time_object = datetime.strptime('23:59:59', '%H:%M:%S')
+				if '-' in guard_shift_day:
+					guard_shift_day = datetime.strptime(guard_shift_day,'%Y-%m-%d').strftime('%Y/%m/%d')
 				else:
-					guard_end_time_object = datetime.strptime(guard_end_time, '%H:%M:%S')
+					guard_shift_day = datetime.strptime(guard_shift_day,'%d/%m/%y').strftime('%Y/%m/%d')
 
-			else:
-				type_of_leave =  guard_start_time
-			# check if shift is split in two days
+				guard_start_time = shift['start_time']
+				guard_end_time = shift['end_time']
+				published_hours = shift['published_hours']
+				level = shift['level']
+				total_dates.append(guard_shift_day)
 
-			if type_of_leave is None:
-				if guard_start_time_object > guard_end_time_object:
-					first_day_hours = (day_end_time - guard_start_time_object).total_seconds()/3600 + 24
-					second_day_hours = (guard_end_time_object - day_end_time).total_seconds()/3600
-				else:
-					first_day_hours = (guard_end_time_object - guard_start_time_object).total_seconds()/3600
-					second_day_hours = 0
+				if level == 1:
+					hourly_pay_rate = 21.90
+					saturday_rate = 32.85
+					sunday_rate = 43.80
+					public_holiday_rate = 54.75
+					mon_fri_night_span_rate = 26.65 
 
-				if second_day_hours != 0 :
-					second_day_hours = published_hours - first_day_hours
+				if level == 2:
+					hourly_pay_rate = 22.53
+					saturday_rate = 33.80
+					sunday_rate = 45.06
+					public_holiday_rate = 56.33
+					mon_fri_night_span_rate = 27.42
 
-					format_str = '%Y/%m/%d'
-					first_day_obj = datetime.strptime(guard_shift_day,format_str).date()
-					second_day_obj = datetime.strptime(guard_shift_day,format_str).date() + timedelta(days=1)
-					
-					# check for first day
-					guard_shift_day_first = guard_shift_day
-					guard_shift_day_second = second_day_obj.strftime('%Y/%m/%d') #convert to string
-					
-					# calculate day and night shift time
-					night_hours = 0
-					day_hours = 0
-					temp_total_published_hours = 0
-					first_day_pub_holiday = False
-					if datetime.strptime(guard_shift_day_first, '%Y/%m/%d').date() in Holidays.populate(state,year):
-						public_holiday_hours += first_day_hours
-						first_day_pub_holiday= True							
+				if level == 3:
+					hourly_pay_rate = 22.91
+					saturday_rate = 34.37
+					sunday_rate = 45.82
+					public_holiday_rate = 57.28
+					mon_fri_night_span_rate = 27.88
+
+				if level == 4:
+					hourly_pay_rate = 23.29
+					saturday_rate = 34.94
+					sunday_rate = 46.58
+					public_holiday_rate = 58.23
+					mon_fri_night_span_rate = 28.34
+
+				if level == 5:
+					hourly_pay_rate = 24.05
+					saturday_rate = 36.08
+					sunday_rate = 48.10
+					public_holiday_rate = 60.13
+					mon_fri_night_span_rate = 29.27
+						
+				# check day
+				year, month, day = (int(x) for x in guard_shift_day.split('/'))   
+				day_number = datetime(year, month, day).weekday()
+
+				if ':' in guard_start_time:
+					guard_start_time_object = datetime.strptime(guard_start_time, '%H:%M:%S')
+					if guard_end_time == '0:00:00':
+						guard_end_time_object = datetime.strptime('23:59:59', '%H:%M:%S')
 					else:
-						if day_number in [0,1,2,3,4]:
-							weekday = True
-							# early hours
-							if guard_start_time_object < white_collar_start_time:
-								temp_night_hours = (white_collar_start_time - guard_start_time_object).total_seconds()/3600
-								night_span_hours += temp_night_hours
-								night_hours += temp_night_hours
-							# late hours
-							midnight_end_time = datetime.strptime('23:59:59', '%H:%M:%S')
-							if guard_start_time_object > white_collar_end_time: #make end time 24
-								temp_night_hours = (midnight_end_time - guard_start_time_object).total_seconds()/3600
-								night_span_hours += round(temp_night_hours)
-								night_hours += temp_night_hours
-							else:
-								night_span_hours += 6
-								night_hours += 6
+						guard_end_time_object = datetime.strptime(guard_end_time, '%H:%M:%S')
 
-							if night_hours != 0:
-								hourly_hours += (first_day_hours - night_hours)
-							else:
-								hourly_hours += first_day_hours
-						elif day_number == 5:
-							saturday_hours += first_day_hours
-						elif day_number == 6:
-							sunday_hours += first_day_hours
+				else:
+					type_of_leave =  guard_start_time
+				# check if shift is split in two days
 
-					# check for second day
-					if datetime.strptime(guard_shift_day_second, '%Y/%m/%d').date() in Holidays.populate(state,year):
-						if first_day_pub_holiday == False:
-							public_holiday_hours += second_day_hours
+				if type_of_leave is None:
+					if guard_start_time_object > guard_end_time_object:
+						first_day_hours = (day_end_time - guard_start_time_object).total_seconds()/3600 + 24
+						second_day_hours = (guard_end_time_object - day_end_time).total_seconds()/3600
+					else:
+						first_day_hours = (guard_end_time_object - guard_start_time_object).total_seconds()/3600
+						second_day_hours = 0
+
+					if second_day_hours != 0 :
+						second_day_hours = published_hours - first_day_hours
+
+						format_str = '%Y/%m/%d'
+						first_day_obj = datetime.strptime(guard_shift_day,format_str).date()
+						second_day_obj = datetime.strptime(guard_shift_day,format_str).date() + timedelta(days=1)
+						
+						# check for first day
+						guard_shift_day_first = guard_shift_day
+						guard_shift_day_second = second_day_obj.strftime('%Y/%m/%d') #convert to string
+						
+						# calculate day and night shift time
+						night_hours = 0
+						day_hours = 0
+						temp_total_published_hours = 0
+						first_day_pub_holiday = False
+						if datetime.strptime(guard_shift_day_first, '%Y/%m/%d').date() in Holidays.populate(state,year):
+							public_holiday_hours += first_day_hours
+							first_day_pub_holiday= True							
 						else:
-							public_holiday_hours += (published_hours - first_day_hours)
-					else:
-						# calculate weekday weekend again
-						year, month, day = (int(x) for x in guard_shift_day_second.split('/'))   
-						day_number = datetime(year, month, day).weekday()
-						temp_night_hours = 0
-						if day_number in [0,1,2,3,4]:
-							weekday = True
-
-							# early hours
-							midnight_start_time = datetime.strptime('00:00:00', '%H:%M:%S')
-							if guard_end_time_object < white_collar_start_time: #start time shuld be 0
-								temp_night_hours1 = (guard_end_time_object - midnight_start_time).total_seconds()/3600
-								temp_night_hours += temp_night_hours1
-								# night_span_hours += temp_night_hours	
-							else:
-								temp_night_hours += 6
-
-							# late hours
-							if guard_end_time_object > white_collar_end_time: #make end time 24
-								temp_night_hours1 = (guard_end_time_object - white_collar_end_time).total_seconds()/3600
-								temp_night_hours += temp_night_hours1
-								# night_span_hours += temp_night_hours
-								
-							if temp_night_hours != 0:
-								if temp_night_hours > second_day_hours:
-									night_span_hours += second_day_hours
-									hourly_hours += 0
-								else:
+							if day_number in [0,1,2,3,4]:
+								weekday = True
+								# early hours
+								if guard_start_time_object < white_collar_start_time:
+									temp_night_hours = (white_collar_start_time - guard_start_time_object).total_seconds()/3600
 									night_span_hours += temp_night_hours
-									hourly_hours += (second_day_hours - temp_night_hours)
-							else:
-								hourly_hours += second_day_hours
+									night_hours += temp_night_hours
+								# late hours
+								midnight_end_time = datetime.strptime('23:59:59', '%H:%M:%S')
+								if guard_start_time_object > white_collar_end_time: #make end time 24
+									temp_night_hours = (midnight_end_time - guard_start_time_object).total_seconds()/3600
+									night_span_hours += round(temp_night_hours)
+									night_hours += temp_night_hours
+								else:
+									night_span_hours += 6
+									night_hours += 6
 
-						elif day_number == 5:
-							saturday_hours += second_day_hours
-						elif day_number == 6:
-							sunday_hours += second_day_hours
+								if night_hours != 0:
+									hourly_hours += (first_day_hours - night_hours)
+								else:
+									hourly_hours += first_day_hours
+							elif day_number == 5:
+								saturday_hours += first_day_hours
+							elif day_number == 6:
+								sunday_hours += first_day_hours
+
+						# check for second day
+						if datetime.strptime(guard_shift_day_second, '%Y/%m/%d').date() in Holidays.populate(state,year):
+							if first_day_pub_holiday == False:
+								public_holiday_hours += second_day_hours
+							else:
+								public_holiday_hours += (published_hours - first_day_hours)
+						else:
+							# calculate weekday weekend again
+							year, month, day = (int(x) for x in guard_shift_day_second.split('/'))   
+							day_number = datetime(year, month, day).weekday()
+							temp_night_hours = 0
+							if day_number in [0,1,2,3,4]:
+								weekday = True
+
+								# early hours
+								midnight_start_time = datetime.strptime('00:00:00', '%H:%M:%S')
+								if guard_end_time_object < white_collar_start_time: #start time shuld be 0
+									temp_night_hours1 = (guard_end_time_object - midnight_start_time).total_seconds()/3600
+									temp_night_hours += temp_night_hours1
+									# night_span_hours += temp_night_hours	
+								else:
+									temp_night_hours += 6
+
+								# late hours
+								if guard_end_time_object > white_collar_end_time: #make end time 24
+									temp_night_hours1 = (guard_end_time_object - white_collar_end_time).total_seconds()/3600
+									temp_night_hours += temp_night_hours1
+									# night_span_hours += temp_night_hours
+									
+								if temp_night_hours != 0:
+									if temp_night_hours > second_day_hours:
+										night_span_hours += second_day_hours
+										hourly_hours += 0
+									else:
+										night_span_hours += temp_night_hours
+										hourly_hours += (second_day_hours - temp_night_hours)
+								else:
+									hourly_hours += second_day_hours
+
+							elif day_number == 5:
+								saturday_hours += second_day_hours
+							elif day_number == 6:
+								sunday_hours += second_day_hours
+					else:
+						first_day_hours = (guard_end_time_object - guard_start_time_object).total_seconds()/3600	
+						temp_night_hours = 0					
+						# public holiday
+						if datetime.strptime(guard_shift_day, '%Y/%m/%d').date() in Holidays.populate(state,year):
+							public_holiday_hours += published_hours
+						else:
+							if day_number in [0,1,2,3,4]:
+								weekday = True
+								# check if there are any outside hours
+								if guard_start_time_object < white_collar_start_time:
+									temp_night_hours1 = (white_collar_start_time - guard_start_time_object).total_seconds()/3600
+									temp_night_hours += temp_night_hours1
+
+								if guard_end_time_object > white_collar_end_time: #check for end time 24
+									temp_night_hours1 = (guard_end_time_object - white_collar_end_time).total_seconds()/3600
+									temp_night_hours += temp_night_hours1
+
+								if temp_night_hours != 0:
+									if temp_night_hours > published_hours:
+										hourly_hours += 0
+										night_span_hours += published_hours
+									else:
+										night_span_hours += temp_night_hours
+										hourly_hours += published_hours - temp_night_hours
+								else:
+									hourly_hours += published_hours
+									
+							elif day_number == 5:
+								saturday_hours += published_hours
+							elif day_number == 6:
+								sunday_hours += published_hours
+					
 				else:
-					first_day_hours = (guard_end_time_object - guard_start_time_object).total_seconds()/3600	
-					temp_night_hours = 0					
-					# public holiday
-					if datetime.strptime(guard_shift_day, '%Y/%m/%d').date() in Holidays.populate(state,year):
-						public_holiday_hours += published_hours
+					leave_hours += published_hours
+			# rule for calculating awards pay
+			temp_obj = None
+
+			temp_obj = {}
+			temp_obj['hourly_hours'] = round(hourly_hours,2) 
+			temp_obj['saturday_hours'] = saturday_hours
+			temp_obj['sunday_hours'] = sunday_hours
+			temp_obj['guard_shift_day'] = guard_shift_day
+			temp_obj['public_holiday_hours'] = round(public_holiday_hours,2)
+			temp_obj['night_span_hours'] = round(night_span_hours,2)
+			temp_obj['hourly_rate'] = hourly_pay_rate
+			temp_obj['saturday_rate'] = saturday_rate
+			temp_obj['sunday_rate'] = sunday_rate
+			temp_obj['public_holiday_rate'] = public_holiday_rate
+			temp_obj['night_span_rate'] = mon_fri_night_span_rate
+			temp_obj['leave_hours'] = leave_hours
+			total_pay = (hourly_hours * hourly_pay_rate) + (saturday_hours * saturday_rate) + (sunday_hours * sunday_rate) + (public_holiday_hours * public_holiday_rate) + (night_span_hours * mon_fri_night_span_rate) + (20.21 * leave_hours)
+			total_hours = hourly_hours + saturday_hours + sunday_hours +public_holiday_hours + night_span_hours 
+			temp_obj['total_hours'] = total_hours
+			temp_obj["total_amount"] = total_pay
+			temp_obj["tax"] = calculate_tax(total_pay)
+			temp_obj["super"] = calculate_super(total_pay)
+			total_worked_hours = hourly_hours + saturday_hours + sunday_hours + public_holiday_hours +night_span_hours
+			temp_obj["annual_leave"] = calculate_annual_leave(total_worked_hours)
+			temp_obj["sick_leave"] = calculate_sick_leave(total_worked_hours)
+			temp_obj["net_pay"] = temp_obj["total_amount"] - temp_obj["tax"]
+			pay[guard_name].append(temp_obj)
+
+			total_dates = list(set(total_dates))
+			fortnight_start = min(total_dates)
+			fortnight_end = max(total_dates)
+	
+	if category == 'cleaning':
+		for guard_name in roaster_dict:
+			shifts = roaster_dict[guard_name]
+			num_of_shifts = len(shifts)
+			only_day_hours = 0
+			day_and_night_hours = 0
+			only_night_hours = 0
+			saturday_hours = 0
+			sunday_hours = 0
+			public_holiday_hours = 0
+			total_published_hours = 0
+			total_amount = 0
+			leave_hours = 0
+
+			pay[guard_name] = []
+
+			for shift in shifts:
+				guard_shift_day = shift['shift_day']
+				type_of_leave = None
+
+				if '-' in guard_shift_day:
+					guard_shift_day = datetime.strptime(guard_shift_day,'%Y-%m-%d').strftime('%Y/%m/%d')
+				else:
+					guard_shift_day = datetime.strptime(guard_shift_day,'%d/%m/%y').strftime('%Y/%m/%d')
+
+				guard_start_time = shift['start_time']
+				guard_end_time = shift['end_time']
+				published_hours = shift['published_hours']
+				level = shift['level']
+				total_dates.append(guard_shift_day)
+				var_job_type = shift['job_type']
+				print(var_job_type)
+				if var_job_type == 'part_time':
+					if level == 1:
+						only_day_rate = 23.94
+						saturday_rate = 34.35
+						sunday_rate = 44.76
+						public_holiday_rate = 55.17
+						day_and_night_rate = 27.07 
+						only_night_rate = 27.07
+
+					if level == 2:
+						only_day_rate = 24.77
+						saturday_rate = 35.54
+						sunday_rate = 46.31
+						public_holiday_rate = 57.08
+						day_and_night_rate = 28.00
+						only_night_rate = 28.00
+
+					if level == 3:
+						only_day_rate = 26.11
+						saturday_rate = 37.46
+						sunday_rate = 48.81
+						public_holiday_rate = 56.75
+						day_and_night_rate = 29.51
+						only_night_rate = 29.51
+				else:
+					if level == 1:
+						only_day_rate = 20.82
+						saturday_rate = 31.23
+						sunday_rate = 41.64
+						public_holiday_rate = 52.05
+						day_and_night_rate = 23.94 
+						only_night_rate = 27.07
+
+					if level == 2:
+						only_day_rate = 21.54
+						saturday_rate = 32.31
+						sunday_rate = 43.08
+						public_holiday_rate = 53.85
+						day_and_night_rate = 24.77
+						only_night_rate = 28.00
+
+					if level == 3:
+						only_day_rate = 22.70
+						saturday_rate = 34.05
+						sunday_rate = 45.40
+						public_holiday_rate = 56.75
+						day_and_night_rate = 26.11
+						only_night_rate = 29.51
+						
+				# check day
+				year, month, day = (int(x) for x in guard_shift_day.split('/'))   
+				day_number = datetime(year, month, day).weekday()
+
+				if ':' in guard_start_time:
+					guard_start_time_object = datetime.strptime(guard_start_time, '%H:%M:%S')
+					if guard_end_time == '0:00:00':
+						guard_end_time_object = datetime.strptime('23:59:59', '%H:%M:%S')
 					else:
-						if day_number in [0,1,2,3,4]:
-							weekday = True
-							# check if there are any outside hours
-							if guard_start_time_object < white_collar_start_time:
-								temp_night_hours1 = (white_collar_start_time - guard_start_time_object).total_seconds()/3600
-								temp_night_hours += temp_night_hours1
+						guard_end_time_object = datetime.strptime(guard_end_time, '%H:%M:%S')
 
-							if guard_end_time_object > white_collar_end_time: #check for end time 24
-								temp_night_hours1 = (guard_end_time_object - white_collar_end_time).total_seconds()/3600
-								temp_night_hours += temp_night_hours1
+				else:
+					type_of_leave =  guard_start_time
+				# check if shift is split in two days
 
-							if temp_night_hours != 0:
-								if temp_night_hours > published_hours:
-									hourly_hours += 0
-									night_span_hours += published_hours
+				if type_of_leave is None:
+					if guard_start_time_object > guard_end_time_object:
+						first_day_hours = (day_end_time - guard_start_time_object).total_seconds()/3600 + 24
+						second_day_hours = (guard_end_time_object - day_end_time).total_seconds()/3600
+					else:
+						first_day_hours = (guard_end_time_object - guard_start_time_object).total_seconds()/3600
+						second_day_hours = 0
+
+					if second_day_hours != 0 :
+						second_day_hours = published_hours - first_day_hours
+
+						format_str = '%Y/%m/%d'
+						first_day_obj = datetime.strptime(guard_shift_day,format_str).date()
+						second_day_obj = datetime.strptime(guard_shift_day,format_str).date() + timedelta(days=1)
+						
+						# check for first day
+						guard_shift_day_first = guard_shift_day
+						guard_shift_day_second = second_day_obj.strftime('%Y/%m/%d') #convert to string
+						
+						# calculate day and night shift time
+						night_hours = 0
+						day_hours = 0
+						temp_total_published_hours = 0
+						first_day_pub_holiday = False
+						if datetime.strptime(guard_shift_day_first, '%Y/%m/%d').date() in Holidays.populate(state,year):
+							public_holiday_hours += first_day_hours
+							first_day_pub_holiday= True							
+						else:
+							temp_night_hours = 0
+							if day_number == 5:
+								saturday_hours += first_day_hours
+							elif day_number == 6:
+								sunday_hours += first_day_hours
+							elif day_number in [0,1,2,3,4]:
+								weekday = True
+								# early hours
+								if guard_start_time_object < white_collar_start_time:
+									temp_night_hours += (white_collar_start_time - guard_start_time_object).total_seconds()/3600
+								# late hours
+								midnight_end_time = datetime.strptime('23:59:59', '%H:%M:%S')
+								if guard_start_time_object > white_collar_end_time: #make end time 24
+									temp_night_hours += (midnight_end_time - guard_start_time_object).total_seconds()/3600
 								else:
-									night_span_hours += temp_night_hours
-									hourly_hours += published_hours - temp_night_hours
+									temp_night_hours += 6
+
+								if temp_night_hours != 0:
+									if temp_night_hours >= first_day_hours:
+										only_night_hours += first_day_hours
+									else:
+										day_and_night_hours += first_day_hours
+								else:
+									only_day_hours += first_day_hours
+
+						# check for second day
+						if datetime.strptime(guard_shift_day_second, '%Y/%m/%d').date() in Holidays.populate(state,year):
+							if first_day_pub_holiday == False:
+								public_holiday_hours += second_day_hours
 							else:
-								hourly_hours += published_hours
-								
-						elif day_number == 5:
-							saturday_hours += published_hours
-						elif day_number == 6:
-							sunday_hours += published_hours
-				
+								public_holiday_hours += (published_hours - first_day_hours)
+						else:
+							# calculate weekday weekend again
+							year, month, day = (int(x) for x in guard_shift_day_second.split('/'))   
+							day_number = datetime(year, month, day).weekday()
+							temp_night_hours = 0
+							if day_number == 5:
+								saturday_hours += second_day_hours
+							elif day_number == 6:
+								sunday_hours += second_day_hours
+							elif day_number in [0,1,2,3,4]:
+								weekday = True
+
+								# early hours
+								midnight_start_time = datetime.strptime('00:00:00', '%H:%M:%S')
+								if guard_end_time_object < white_collar_start_time: #start time shuld be 0
+									temp_night_hours1 = (guard_end_time_object - midnight_start_time).total_seconds()/3600
+									temp_night_hours += temp_night_hours1
+									# night_span_hours += temp_night_hours	
+								else:
+									temp_night_hours += 6
+
+								# late hours
+								if guard_end_time_object > white_collar_end_time: #make end time 24
+									temp_night_hours1 = (guard_end_time_object - white_collar_end_time).total_seconds()/3600
+									temp_night_hours += temp_night_hours1
+									# night_span_hours += temp_night_hours
+									
+								if temp_night_hours != 0:
+									if temp_night_hours >= second_day_hours:
+										only_night_hours += second_day_hours
+									else:
+										day_and_night_hours += second_day_hours
+								else:
+									only_day_hours += second_day_hours
+					else:
+						first_day_hours = (guard_end_time_object - guard_start_time_object).total_seconds()/3600	
+						temp_night_hours = 0
+						# public holiday
+						if datetime.strptime(guard_shift_day, '%Y/%m/%d').date() in Holidays.populate(state,year):
+							public_holiday_hours += published_hours
+						else:	
+							if day_number == 5:
+								saturday_hours += published_hours
+							elif day_number == 6:
+								sunday_hours += published_hours
+							elif day_number in [0,1,2,3,4]:
+								weekday = True
+								# check if there are any outside hours
+								if guard_start_time_object < white_collar_start_time:
+									temp_night_hours1 = (white_collar_start_time - guard_start_time_object).total_seconds()/3600
+									temp_night_hours += temp_night_hours1
+
+								if guard_end_time_object > white_collar_end_time: #check for end time 24
+									temp_night_hours1 = (guard_end_time_object - white_collar_end_time).total_seconds()/3600
+									temp_night_hours += temp_night_hours1
+
+								if temp_night_hours != 0:
+									if temp_night_hours >= published_hours:
+										only_night_hours += published_hours
+									else:
+										day_and_night_hours += published_hours
+								else:
+									only_day_hours += published_hours
+					
+				else:
+					leave_hours += published_hours
+			# rule for calculating awards pay
+			temp_obj = None
+
+			temp_obj = {}
+			if (saturday_hours == 0) and (sunday_hours == 0) and (public_holiday_hours == 0):
+				if (only_night_hours == 0): 
+					if day_and_night_hours != 0:
+						day_and_night_hours += only_day_hours
+						only_day_hours = 0
+				else:
+					if day_and_night_hours == 0:
+						if only_day_hours != 0:
+							day_and_night_hours += only_day_hours
+							only_day_hours = 0
+							day_and_night_hours += only_night_hours
+							only_night_hours = 0
+					else:
+						day_and_night_hours += only_day_hours
+						only_day_hours = 0
+						day_and_night_hours += only_night_hours
+						only_night_hours = 0
 			else:
-				leave_hours += published_hours
-		# rule for calculating awards pay
-		temp_obj = None
+				if only_night_hours == 0:
+					if day_and_night_hours != 0:
+						day_and_night_hours += only_day_hours
+						only_day_hours = 0
+				else:
+					day_and_night_hours += only_night_hours
+					only_night_hours = 0
+					day_and_night_hours += only_day_hours
+					only_day_hours = 0
 
-		temp_obj = {}
-		temp_obj['hourly_hours'] = round(hourly_hours,2) 
-		temp_obj['saturday_hours'] = saturday_hours
-		temp_obj['sunday_hours'] = sunday_hours
-		temp_obj['guard_shift_day'] = guard_shift_day
-		temp_obj['public_holiday_hours'] = round(public_holiday_hours,2)
-		temp_obj['night_span_hours'] = round(night_span_hours,2)
-		temp_obj['hourly_rate'] = hourly_pay_rate
-		temp_obj['saturday_rate'] = saturday_rate
-		temp_obj['sunday_rate'] = sunday_rate
-		temp_obj['public_holiday_rate'] = public_holiday_rate
-		temp_obj['night_span_rate'] = mon_fri_night_span_rate
-		temp_obj['leave_hours'] = leave_hours
-		total_pay = (hourly_hours * hourly_pay_rate) + (saturday_hours * saturday_rate) + (sunday_hours * sunday_rate) + (public_holiday_hours * public_holiday_rate) + (night_span_hours * mon_fri_night_span_rate) + (20.21 * leave_hours)
-		total_hours = hourly_hours + saturday_hours + sunday_hours +public_holiday_hours + night_span_hours 
-		temp_obj['total_hours'] = total_hours
-		temp_obj["total_amount"] = total_pay
-		temp_obj["tax"] = calculate_tax(total_pay)
-		temp_obj["super"] = calculate_super(total_pay)
-		total_worked_hours = hourly_hours + saturday_hours + sunday_hours + public_holiday_hours +night_span_hours
-		temp_obj["annual_leave"] = calculate_annual_leave(total_worked_hours)
-		temp_obj["sick_leave"] = calculate_sick_leave(total_worked_hours)
-		temp_obj["net_pay"] = temp_obj["total_amount"] - temp_obj["tax"]
-		pay[guard_name].append(temp_obj)
+			temp_obj['only_day_hours'] = round(only_day_hours,2) 
+			temp_obj['saturday_hours'] = saturday_hours
+			temp_obj['sunday_hours'] = sunday_hours
+			temp_obj['guard_shift_day'] = guard_shift_day
+			temp_obj['public_holiday_hours'] = round(public_holiday_hours,2)
+			temp_obj['only_night_hours'] = round(only_night_hours,2)
+			temp_obj['day_and_night_hours'] = round(day_and_night_hours,2)
+			temp_obj['hourly_rate'] = only_day_rate
+			temp_obj['saturday_rate'] = saturday_rate
+			temp_obj['sunday_rate'] = sunday_rate
+			temp_obj['public_holiday_rate'] = public_holiday_rate
+			temp_obj['only_night_rate'] = only_night_rate
+			temp_obj['day_and_night_rate'] = day_and_night_rate
+			temp_obj['leave_hours'] = leave_hours
+			total_pay = (only_day_hours * only_day_rate) + (saturday_hours * saturday_rate) + (sunday_hours * sunday_rate) + (public_holiday_hours * public_holiday_rate) + (only_night_hours * only_night_rate)  + (day_and_night_hours * day_and_night_rate) + (20.82 * leave_hours)
 
-		total_dates = list(set(total_dates))
-		fortnight_start = min(total_dates)
-		fortnight_end = max(total_dates)
+			total_hours = only_day_hours + saturday_hours + sunday_hours +public_holiday_hours + only_night_hours + day_and_night_hours 
+			temp_obj['total_hours'] = total_hours
+			temp_obj["total_amount"] = total_pay
+			temp_obj["tax"] = calculate_tax(total_pay)
+			temp_obj["super"] = calculate_super(total_pay)
+			total_worked_hours = only_day_hours + saturday_hours + sunday_hours + public_holiday_hours +only_night_hours + day_and_night_hours
+			temp_obj["annual_leave"] = calculate_annual_leave(total_worked_hours)
+			temp_obj["sick_leave"] = calculate_sick_leave(total_worked_hours)
+			temp_obj["net_pay"] = temp_obj["total_amount"] - temp_obj["tax"]
+			pay[guard_name].append(temp_obj)
+
+			total_dates = list(set(total_dates))
+			fortnight_start = min(total_dates)
+			fortnight_end = max(total_dates)
+
 	return [json.dumps(pay), fortnight_start,fortnight_end]
 
 def calculate_rss_rate(roaster_data, state):
@@ -835,33 +1130,18 @@ def calculate_rss_rate(roaster_data, state):
 			day_number = datetime(year, month, day).weekday()
 
 			# check year
-			if year == 2018:
-				if level == 1:
-					weekday_rate = 21.61
-					weekend_rate = 28.41
-				if level == 2:
-					weekday_rate = 22.23
-					weekend_rate = 29.63
-				if level == 3:
-					weekday_rate = 22.85
-					weekend_rate = 30.87
-				if level == 4:
-					weekday_rate = 23.46
-					weekend_rate = 32.11
-
-			if year == 2019:
-				if level == 1:
-					weekday_rate = 22.13
-					weekend_rate = 29.09
-				if level == 2:
-					weekday_rate = 22.76
-					weekend_rate = 30.34
-				if level == 3:
-					weekday_rate = 23.40
-					weekend_rate = 31.61
-				if level == 4:
-					weekday_rate = 24.02
-					weekend_rate = 32.88
+			if level == 1:
+				weekday_rate = 22.13
+				weekend_rate = 29.09
+			if level == 2:
+				weekday_rate = 22.76
+				weekend_rate = 30.34
+			if level == 3:
+				weekday_rate = 23.40
+				weekend_rate = 31.61
+			if level == 4:
+				weekday_rate = 24.02
+				weekend_rate = 32.88
 
 			if ':' in guard_start_time:
 				guard_start_time_object = datetime.strptime(guard_start_time, '%H:%M:%S')

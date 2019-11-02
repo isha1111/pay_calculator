@@ -50,15 +50,17 @@ def calculate_payrate(request):
 
 	if pay_type == 'jmd_eba':
 		data = Pay.calculate_jmd_eba_rate(roaster_data, state)
-		return {'project': 'PAY CALCULATOR','pay':data[0],'pay_type':'jmd_eba','username':request.session['username'],'fortnight_start':data[1],'fortnight_end':data[2]}
+		return {'project': 'PAY CALCULATOR','pay':data[0],'pay_type':'jmd_eba','username':request.session['username'],'fortnight_start':data[1],'fortnight_end':data[2],'category':'security'}
 
 	if pay_type == 'awards':
-		data = Pay.calculate_awards_rate(roaster_data, state)
-		return {'project': 'PAY CALCULATOR','pay':data[0],'pay_type':'awards','username':request.session['username'],'fortnight_start':data[1],'fortnight_end':data[2]}
+		category = request.params.get('category')
+		job_type = request.params.get('job_type')
+		data = Pay.calculate_awards_rate(roaster_data, state,category,job_type)
+		return {'project': 'PAY CALCULATOR','pay':data[0],'pay_type':'awards','username':request.session['username'],'fortnight_start':data[1],'fortnight_end':data[2],'category':category}
 
 	if pay_type == 'rss':
 		data = Pay.calculate_rss_rate(roaster_data, state)
-		return {'project': 'PAY CALCULATOR','pay':data[0],'pay_type':'rss','username':request.session['username'],'fortnight_start':data[1],'fortnight_end':data[2]}
+		return {'project': 'PAY CALCULATOR','pay':data[0],'pay_type':'rss','username':request.session['username'],'fortnight_start':data[1],'fortnight_end':data[2],'category':'security'}
 
 @view_config(route_name='save_payslip', renderer='string')
 def save_payslip(request):

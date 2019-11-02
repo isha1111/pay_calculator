@@ -12,39 +12,36 @@ import json
 </div>
 
 <div class="title" id="employee_add_title">
-	User Login 
+	Forgot Password 
 </div>
 
 <div id="container">
 	<div id="form_div">
-		<form method="post" action="/log_user">
+		<form method="post" action="/reset_password">
 			<div class="row">
 				<div class="input">
-					<label class="required">Email/Username</label>
+					<label class="required">Name</label>
+					<input type="text" name="firstname" v-model="firstname" required="true">
+				</div>
+				<div class="input">
+					<label class="required">Email</label>
 					<input type="email" name="email" v-model="email" required="true">
 				</div>
 				<div class="input">
-					<label class="required">Password</label>
+					<label class="required">New Password</label>
 					<input type="password" name="password" required="true">
+				</div>
+				<div class="input">
+					<label class="required">Confirm password</label>
+					<input type="password" name="password2" required="true">
 				</div>
 				
 			</div>
 			
 			<div style="text-align: center;">
-				<input type="submit" value="Login">
+				<input type="submit" value="Reset">
 			</div>
 		</form>
-		<div style="text-align: center;">
-			<span style="font-size: .75em">OR</span>
-		</div>
-		
-		<div style="text-align: center;">
-			<button> <a href="/register" style="text-decoration: none;">Register</a> </button>
-		</div>
-
-		<div style="text-align: center;">
-			 <a href="/forgot_password" >forgot password</a> 
-		</div>
 		
 	</div>
 
