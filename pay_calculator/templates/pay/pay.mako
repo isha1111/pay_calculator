@@ -7,6 +7,7 @@
 <div class="hidden" id="content">
 	<span id="pay_type">${pay_type}</span>
 	<span id="category">${category}</span>
+	<span id="state">${state}</span>
 </div>
 <div class="hidden" id="calculated_data"></div>
 <a id="index_tag" href="/" class="center">Calculate another pay</a>
