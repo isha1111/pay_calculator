@@ -25,7 +25,7 @@
 		<li class="submenu_li"><a href="employee_add" >Add Employee</a> | </li>
 		<li class="submenu_li"><a href="search_employee" >Search Employee</a> | </li>
 		<li class="submenu_li"><a href="update_employee" >Update Employee</a> | </li> 
-
+		<li class="submenu_li"><a href="delete_employee" >Delete Employee</a> | </li> 
 		<li class="submenu_li"><a href="home" >Pay Calculator</a> | </li> 
 	</ul>
 </div>
