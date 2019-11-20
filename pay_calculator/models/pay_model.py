@@ -114,9 +114,8 @@ def get_ytd_and_pay_data(firstname, start_date,end_date):
 	return [firstname.title(),fortnight_start,fortnight_end,gross_pay,net_pay,tax,super_amount,ytd_pay,ytd_tax,ytd_super_amount,published_hours,published_rate,public_holiday_hours,public_holiday_rate,weekday_hours,weekday_rate,weekend_hours,weekend_rate,hourly_hours,hourly_rate,saturday_hours,saturday_rate,sunday_hours,sunday_rate,night_span_hours,night_span_rate]
 
 def calculate_jmd_eba_rate(roaster_data, state):	
-	public_day_payrate = 54.68
-	weekday_no_rotating_rate = 21
-	weekday_rotating_rate = 25
+	public_day_payrate = 50.53
+	weekday_rotating_rate = 21.89
 
 	roaster_data_list = roaster_data.split("\n")
 	roaster_row_list = roaster_data_list[1:]
@@ -347,8 +346,8 @@ def calculate_jmd_eba_rate(roaster_data, state):
 			temp_obj['weekday_and_weeknight_and_weekend_rotating_rate'] = 0
 			temp_obj['leave_rate'] = leave_hours
 			temp_obj['total_published_hours'] = total_published_hours
-			temp_obj['total_published_hours_rate'] = 21.89
-			total_amount += ((21.89 * total_published_hours) + (21.89 * leave_hours))
+			temp_obj['total_published_hours_rate'] = 20.21
+			total_amount += ((20.21 * total_published_hours) + (20.21 * leave_hours))
 
 		# 2. when no weekday and weekend hours (meaning only weeknight hours in mon-fri outside 06:00 to 18:00)
 		if (weekend_hours == 0) and (weekday_hours == 0):
@@ -361,8 +360,8 @@ def calculate_jmd_eba_rate(roaster_data, state):
 			temp_obj['weekday_and_weeknight_and_weekend_rotating_rate'] = 0
 			temp_obj['leave_rate'] = leave_hours
 			temp_obj['total_published_hours'] = total_published_hours
-			temp_obj['total_published_hours_rate'] = 26.19
-			total_amount += ((26.19 * total_published_hours)+ (21.89 * leave_hours))
+			temp_obj['total_published_hours_rate'] = 24.68
+			total_amount += ((24.68 * total_published_hours)+ (20.21 * leave_hours))
 
 		# 3. when person work weeknight and weekday but no weekend
 		if(weekend_hours == 0) and (weekday_hours != 0) and (weeknight_hours != 0):
@@ -385,8 +384,8 @@ def calculate_jmd_eba_rate(roaster_data, state):
 				weeknight_hours = 0
 				temp_obj['weekday_and_weeknight_rate'] = total_published_hours
 			temp_obj['total_published_hours'] = total_published_hours
-			temp_obj['total_published_hours_rate'] = 22.37
-			total_amount += ((22.37 * total_published_hours) + (21.89 * leave_hours))
+			temp_obj['total_published_hours_rate'] = 21.11
+			total_amount += ((21.11 * total_published_hours) + (20.21 * leave_hours))
 
 		# 4. When person works weeknight and weekend and weekday
 		if((weekday_hours != 0) and (weeknight_hours != 0) and (weekend_hours != 0)) or (temp_obj is None):
@@ -402,14 +401,14 @@ def calculate_jmd_eba_rate(roaster_data, state):
 				temp_obj['weekday_and_weeknight_and_weekend_rotating_rate'] = 0
 				temp_obj['weeknight_and_weekend_rotating_rate'] = total_published_hours
 				temp_obj['total_published_hours'] = total_published_hours
-				temp_obj['total_published_hours_rate'] = 28.31
-				total_amount += ((28.31 * total_published_hours) + (21.89 * leave_hours))
+				temp_obj['total_published_hours_rate'] = 26.68
+				total_amount += ((26.68 * total_published_hours) + (20.21 * leave_hours))
 			else:
 				temp_obj['weekday_and_weeknight_and_weekend_rotating_rate'] = total_published_hours
 				temp_obj['weeknight_and_weekend_rotating_rate'] = 0
 				temp_obj['total_published_hours'] = total_published_hours
-				temp_obj['total_published_hours_rate'] = 26.65
-				total_amount += ((26.65 * total_published_hours) + (21.89 * leave_hours))
+				temp_obj['total_published_hours_rate'] = 25.12
+				total_amount += ((25.12 * total_published_hours) + (20.21 * leave_hours))
 
 		if(public_holiday_hours != 0):
 			temp_obj["public_holiday"] = public_holiday_hours
@@ -1210,6 +1209,216 @@ def calculate_rss_rate(roaster_data, state):
 		temp_obj['total_hours'] = total_hours
 		temp_obj["tax"] = calculate_tax(total_pay)
 		total_worked_hours = weekday_hours + weekend_hours
+		temp_obj["annual_leave"] = calculate_annual_leave(total_worked_hours)
+		temp_obj["sick_leave"] = calculate_sick_leave(total_worked_hours)
+		temp_obj["net_pay"] = temp_obj["total_amount"] - temp_obj["tax"]
+		temp_obj["super"] = calculate_super(total_pay)
+		pay[guard_name].append(temp_obj)
+
+		total_dates = list(set(total_dates))
+		fortnight_start = min(total_dates)
+		fortnight_end = max(total_dates)
+	return [json.dumps(pay),fortnight_start,fortnight_end]
+
+def calculate_jmd_eba3_rate(roaster_data, state):
+	roaster_data_list = roaster_data.split("\n")
+	roaster_row_list = roaster_data_list[1:]
+
+	day_end_time = datetime.strptime('00:00:00', '%H:%M:%S')
+
+	pay = {}
+	total_dates = []
+	header = 'Officer full name','Published start date','Published start','Published end','Published actual hours','Published location name','Client name','Officer - Bank Account Name','Officer - BSB','Officer - Bank Account Number,level'
+	
+	roaster_dict = {}
+
+	for row in roaster_row_list:
+		data = row.split(",")
+
+		if data[0] == '':
+			continue
+
+		if data[1] == '"':
+			data.pop(1)
+
+		guard_name = data[0].lower()
+		if guard_name == '':
+			continue
+
+		shift_day = data[1]				
+		start_time = data[2] 
+		end_time = data[3]
+		published_hours = data[4]
+		level = data[10]
+
+		if level not in [1,2,3,4,5]:
+			level = 1
+
+		if guard_name not in roaster_dict:
+			roaster_dict[guard_name] = []
+
+		temp_dict = {}
+		temp_dict['shift_day'] = shift_day
+		temp_dict['start_time'] = start_time
+		temp_dict['end_time'] = end_time
+		temp_dict['published_hours'] = float(published_hours)
+		temp_dict['level'] = int(level)
+
+		roaster_dict[guard_name].append(temp_dict)
+
+	for guard_name in roaster_dict:
+		shifts = roaster_dict[guard_name]
+		weekday_hours = 0
+		total_published_hours = 0
+		total_amount = 0
+		leave_hours = 0
+
+		pay[guard_name] = []
+
+		for shift in shifts:
+			guard_shift_day = shift['shift_day']
+			type_of_leave = None
+
+			if '-' in guard_shift_day:
+				guard_shift_day = datetime.strptime(guard_shift_day,'%Y-%m-%d').strftime('%Y/%m/%d')
+			else:
+				guard_shift_day = datetime.strptime(guard_shift_day,'%d/%m/%y').strftime('%Y/%m/%d')
+
+			guard_start_time = shift['start_time']
+			guard_end_time = shift['end_time']
+			published_hours = shift['published_hours']
+			level = shift['level']
+			total_dates.append(guard_shift_day)
+
+			# check day
+			year, month, day = (int(x) for x in guard_shift_day.split('/'))   
+			day_number = datetime(year, month, day).weekday()
+
+			if ':' in guard_start_time:
+				guard_start_time_object = datetime.strptime(guard_start_time, '%H:%M:%S')
+			else:
+				type_of_leave =  guard_start_time
+
+			# check if shift is split into two days
+			if type_of_leave is None:
+				total_published_hours += published_hours
+			else:
+				leave_hours += published_hours
+
+		# rule for calculation rss pay
+		temp_obj = {}
+		temp_obj['hours'] = total_published_hours
+		temp_obj['rate'] = 26.65
+		temp_obj['leave_hours'] = leave_hours
+		total_pay = (26.65 * total_published_hours) + (20.21 * leave_hours)
+		temp_obj['total_amount'] = total_pay
+		temp_obj["tax"] = calculate_tax(total_pay)
+		total_worked_hours = total_published_hours
+		temp_obj["annual_leave"] = calculate_annual_leave(total_worked_hours)
+		temp_obj["sick_leave"] = calculate_sick_leave(total_worked_hours)
+		temp_obj["net_pay"] = temp_obj["total_amount"] - temp_obj["tax"]
+		temp_obj["super"] = calculate_super(total_pay)
+		pay[guard_name].append(temp_obj)
+
+		total_dates = list(set(total_dates))
+		fortnight_start = min(total_dates)
+		fortnight_end = max(total_dates)
+	return [json.dumps(pay),fortnight_start,fortnight_end]
+
+def calculate_jmd_eba2_rate(roaster_data, state):
+	roaster_data_list = roaster_data.split("\n")
+	roaster_row_list = roaster_data_list[1:]
+
+	day_end_time = datetime.strptime('00:00:00', '%H:%M:%S')
+
+	pay = {}
+	total_dates = []
+	header = 'Officer full name','Published start date','Published start','Published end','Published actual hours','Published location name','Client name','Officer - Bank Account Name','Officer - BSB','Officer - Bank Account Number,level'
+	
+	roaster_dict = {}
+
+	for row in roaster_row_list:
+		data = row.split(",")
+
+		if data[0] == '':
+			continue
+
+		if data[1] == '"':
+			data.pop(1)
+
+		guard_name = data[0].lower()
+		if guard_name == '':
+			continue
+
+		shift_day = data[1]				
+		start_time = data[2] 
+		end_time = data[3]
+		published_hours = data[4]
+		level = data[10]
+
+		if level not in [1,2,3,4,5]:
+			level = 1
+
+		if guard_name not in roaster_dict:
+			roaster_dict[guard_name] = []
+
+		temp_dict = {}
+		temp_dict['shift_day'] = shift_day
+		temp_dict['start_time'] = start_time
+		temp_dict['end_time'] = end_time
+		temp_dict['published_hours'] = float(published_hours)
+		temp_dict['level'] = int(level)
+
+		roaster_dict[guard_name].append(temp_dict)
+
+	for guard_name in roaster_dict:
+		shifts = roaster_dict[guard_name]
+		weekday_hours = 0
+		total_published_hours = 0
+		total_amount = 0
+		leave_hours = 0
+
+		pay[guard_name] = []
+
+		for shift in shifts:
+			guard_shift_day = shift['shift_day']
+			type_of_leave = None
+
+			if '-' in guard_shift_day:
+				guard_shift_day = datetime.strptime(guard_shift_day,'%Y-%m-%d').strftime('%Y/%m/%d')
+			else:
+				guard_shift_day = datetime.strptime(guard_shift_day,'%d/%m/%y').strftime('%Y/%m/%d')
+
+			guard_start_time = shift['start_time']
+			guard_end_time = shift['end_time']
+			published_hours = shift['published_hours']
+			level = shift['level']
+			total_dates.append(guard_shift_day)
+
+			# check day
+			year, month, day = (int(x) for x in guard_shift_day.split('/'))   
+			day_number = datetime(year, month, day).weekday()
+
+			if ':' in guard_start_time:
+				guard_start_time_object = datetime.strptime(guard_start_time, '%H:%M:%S')
+			else:
+				type_of_leave =  guard_start_time
+
+			# check if shift is split into two days
+			if type_of_leave is None:
+				total_published_hours += published_hours
+			else:
+				leave_hours += published_hours
+
+		# rule for calculation rss pay
+		temp_obj = {}
+		temp_obj['hours'] = total_published_hours
+		temp_obj['rate'] = 26.00
+		temp_obj['leave_hours'] = leave_hours
+		total_pay = (26.00 * total_published_hours) + (20.21 * leave_hours)
+		temp_obj['total_amount'] = total_pay
+		temp_obj["tax"] = calculate_tax(total_pay)
+		total_worked_hours = total_published_hours
 		temp_obj["annual_leave"] = calculate_annual_leave(total_worked_hours)
 		temp_obj["sick_leave"] = calculate_sick_leave(total_worked_hours)
 		temp_obj["net_pay"] = temp_obj["total_amount"] - temp_obj["tax"]

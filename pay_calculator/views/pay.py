@@ -52,6 +52,18 @@ def calculate_payrate(request):
 		data = Pay.calculate_jmd_eba_rate(roaster_data, state)
 		return {'project': 'PAY CALCULATOR','pay':data[0],'pay_type':'jmd_eba','username':request.session['username'],'fortnight_start':data[1],'fortnight_end':data[2],'category':'security','state':state}
 
+	if pay_type == 'jmd_eba3':
+		data = Pay.calculate_jmd_eba3_rate(roaster_data, state)
+		return {'project': 'PAY CALCULATOR','pay':data[0],'pay_type':'jmd_eba3','username':request.session['username'],'fortnight_start':data[1],'fortnight_end':data[2],'category':'security','state':state}
+
+	if pay_type == 'jmd_eba2':
+		data = Pay.calculate_jmd_eba2_rate(roaster_data, state)
+		return {'project': 'PAY CALCULATOR','pay':data[0],'pay_type':'jmd_eba2','username':request.session['username'],'fortnight_start':data[1],'fortnight_end':data[2],'category':'security','state':state}
+
+	if pay_type == 'jmd_eba1':
+		data = Pay.calculate_jmd_eba1_rate(roaster_data, state)
+		return {'project': 'PAY CALCULATOR','pay':data[0],'pay_type':'jmd_eba1','username':request.session['username'],'fortnight_start':data[1],'fortnight_end':data[2],'category':'security','state':state}
+
 	if pay_type == 'awards':
 		category = request.params.get('category')
 		job_type = request.params.get('job_type')

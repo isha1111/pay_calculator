@@ -51,6 +51,9 @@
 		<label>Pay Type</label>
 		<select id="pay_type" name="pay_type" onchange="change_category()">
 			<option value="jmd_eba">JMD EBA</option>
+			<option value="jmd_eba1">JMD EBA1</option>
+			<option value="jmd_eba2">JMD EBA2 ($26)</option>
+			<option value="jmd_eba3">JMD EBA3 ($26.65)</option>
 			<option value="awards">awards</option>
 			<option value="rss">RSS</option>
 		</select></br>
