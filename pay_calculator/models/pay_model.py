@@ -1430,6 +1430,210 @@ def calculate_jmd_eba2_rate(roaster_data, state):
 		fortnight_end = max(total_dates)
 	return [json.dumps(pay),fortnight_start,fortnight_end]
 
+def calculate_jmd_eba1_rate(roaster_data, state):	
+	public_day_payrate = 50.53
+	weekday_rotating_rate = 21.89
+
+	roaster_data_list = roaster_data.split("\n")
+	roaster_row_list = roaster_data_list[1:]
+
+	white_collar_start_time = datetime.strptime('06:00:00', '%H:%M:%S')
+	white_collar_end_time = datetime.strptime('18:00:00', '%H:%M:%S')
+	day_end_time = datetime.strptime('00:00:00', '%H:%M:%S')
+	# day_start_time = datetime.strptime('00:00:00', '%H:%M:%S')
+
+	
+	pay = {}
+	total_dates = []
+	header = 'Officer full name','Published start date','Published start','Published end','Published actual hours','Published location name','Client name','Officer - Bank Account Name','Officer - BSB','Officer - Bank Account Number'
+	
+	roaster_dict = {}
+
+	for row in roaster_row_list:
+		data = row.split(",")
+
+		if data[0] == '':
+			continue
+
+		if data[1] == '"':
+			data.pop(1)
+
+		guard_name = data[0].lower()
+		if guard_name == '':
+			continue
+		shift_day = data[1]				
+		start_time = data[2] 
+		end_time = data[3]
+		published_hours = data[4]
+
+		if guard_name not in roaster_dict:
+			roaster_dict[guard_name] = []
+
+		temp_dict = {}
+		temp_dict['shift_day'] = shift_day
+		temp_dict['start_time'] = start_time
+		temp_dict['end_time'] = end_time
+		temp_dict['published_hours'] = float(published_hours)
+
+		roaster_dict[guard_name].append(temp_dict)
+
+	for guard_name in roaster_dict:
+		shifts = roaster_dict[guard_name]
+		num_of_shifts = len(shifts)
+		total_day_hours = 0
+		total_night_hours = 0
+		weekend_hours = 0
+		public_holiday_hours = 0
+		total_published_hours = 0
+		total_amount = 0
+		leave_hours = 0
+
+		pay[guard_name] = []
+		
+		for shift in shifts:
+			guard_shift_day = shift['shift_day']
+			type_of_leave = None
+
+			if '-' in guard_shift_day:
+				guard_shift_day = datetime.strptime(guard_shift_day,'%Y-%m-%d').strftime('%Y/%m/%d')
+			else:
+				guard_shift_day = datetime.strptime(guard_shift_day,'%d/%m/%y').strftime('%Y/%m/%d')
+			guard_start_time = shift['start_time']
+			guard_end_time = shift['end_time']
+			published_hours = shift['published_hours']
+			total_dates.append(guard_shift_day)
+
+			# check day
+			year, month, day = (int(x) for x in guard_shift_day.split('/'))   
+			day_number = datetime(year, month, day).weekday()
+
+			if ':' in guard_start_time:
+				guard_start_time_object = datetime.strptime(guard_start_time, '%H:%M:%S')
+				if guard_end_time == '0:00:00':
+					guard_end_time_object = datetime.strptime('23:59:59', '%H:%M:%S')
+				else:
+					guard_end_time_object = datetime.strptime(guard_end_time, '%H:%M:%S')
+			else:
+				type_of_leave =  guard_start_time
+			# check if shift is split in two days
+
+			if type_of_leave is None:
+				if guard_start_time_object > guard_end_time_object:
+					first_day_hours = (day_end_time - guard_start_time_object).total_seconds()/3600 + 24
+					second_day_hours = (guard_end_time_object - day_end_time).total_seconds()/3600
+				else:
+					first_day_hours = (guard_end_time_object - guard_start_time_object).total_seconds()/3600
+					second_day_hours = 0
+
+				if second_day_hours != 0 :
+					format_str = '%Y/%m/%d'
+					first_day_obj = datetime.strptime(guard_shift_day,format_str).date()
+					second_day_obj = datetime.strptime(guard_shift_day,format_str).date() + timedelta(days=1)
+
+					# check for first day
+					guard_shift_day_first = guard_shift_day
+					guard_shift_day_second = second_day_obj.strftime('%Y/%m/%d') #convert to string
+					# calculate day and night shift time
+					night_hours = 0
+					day_hours = 0
+					temp_total_published_hours = 0
+					first_day_pub_holiday = False
+					
+					temp_total_published_hours = published_hours
+					
+					# early hours
+					if guard_start_time_object < white_collar_start_time:
+						temp_night_hours = (white_collar_start_time - guard_start_time_object).total_seconds()/3600
+						night_hours += temp_night_hours
+					# late hours
+					midnight_end_time = datetime.strptime('23:59:59', '%H:%M:%S')
+					if guard_start_time_object > white_collar_end_time: #make end time 24
+						temp_night_hours = (midnight_end_time - guard_start_time_object).total_seconds()/3600
+						night_hours += round(temp_night_hours)
+					else:
+						night_hours += 6
+
+					if night_hours != 0:
+						day_hours = first_day_hours - night_hours
+					else:
+						day_hours = first_day_hours
+
+					total_day_hours += day_hours
+					total_night_hours += night_hours
+						
+					# check for second day
+					
+					# early hours
+					midnight_start_time = datetime.strptime('00:00:00', '%H:%M:%S')
+					if guard_end_time_object < white_collar_start_time: #start time shuld be 0
+						temp_night_hours = (guard_end_time_object - midnight_start_time).total_seconds()/3600
+						
+						second_night_hours += temp_night_hours
+						
+					else:
+						second_night_hours += 6
+					# late hours
+					if guard_end_time_object > white_collar_end_time: #make end time 24
+						temp_night_hours = (guard_end_time_object - white_collar_end_time).total_seconds()/3600
+						second_night_hours += temp_night_hours
+						
+					if second_night_hours != 0:
+						day_hours = second_day_hours - second_night_hours
+					else:
+						day_hours = second_day_hours
+					
+					total_day_hours += day_hours
+					total_night_hours += second_night_hours
+
+				else:
+					first_day_hours = (guard_end_time_object - guard_start_time_object).total_seconds()/3600
+
+					total_published_hours += published_hours
+					# calculate day and night shift time
+					night_hours = 0
+					day_hours = 0
+					
+					# early hours
+					if guard_start_time_object < white_collar_start_time:
+						temp_night_hours = (white_collar_start_time - guard_start_time_object).total_seconds()/3600
+						night_hours += temp_night_hours
+					# late hours
+					if guard_end_time_object > white_collar_end_time: #check for end time 24
+						temp_night_hours = (guard_end_time_object - white_collar_end_time).total_seconds()/3600
+						night_hours += temp_night_hours
+
+					if night_hours != 0:
+						day_hours = first_day_hours - night_hours
+					else:
+						day_hours = first_day_hours
+
+					total_day_hours += day_hours
+					total_night_hours += night_hours
+			else:
+				leave_hours += published_hours
+		# rule for caluclating if weekday or weeknight payrate
+		temp_obj = {}
+			
+		temp_obj['day_hours'] = total_day_hours
+		temp_obj['night_hours'] = total_night_hours
+		temp_obj['leave_hours'] = leave_hours
+		temp_obj["total_amount"] = (total_day_hours * 27) + (total_night_hours * 27.90) + (leave_hours * 20.21)
+		temp_obj["tax"] = calculate_tax(total_amount)
+		temp_obj["super"] = calculate_super(total_amount)
+		temp_obj["annual_leave"] = calculate_annual_leave(total_published_hours + public_holiday_hours)
+		temp_obj["sick_leave"] = calculate_sick_leave(total_published_hours + public_holiday_hours)
+		temp_obj["net_pay"] = temp_obj["total_amount"] - temp_obj["tax"]
+		temp_obj["guard_shift_day"] = guard_shift_day
+		pay[guard_name].append(temp_obj)
+		
+
+	total_dates = list(set(total_dates))
+	fortnight_start = min(total_dates)
+	fortnight_end = max(total_dates)
+    	
+	# save_payslip_data(pay,total_dates)
+	return [json.dumps(pay),fortnight_start,fortnight_end]
+
 def calculate_super(pay_amount):
 	super = pay_amount * .095
 	return super

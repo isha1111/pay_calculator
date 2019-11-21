@@ -180,6 +180,34 @@ function ConvertToCSV_eba() {
 		hiddenElement.click();
     }
 
+function ConvertToCSV_eba1() {
+		var pay_data = $( "#hidden_pay" ).html();
+       	var file_data = JSON.parse(pay_data);
+        var str = '';
+        var header = 'name,27.00,27.90,leave hours,gross pay,tax,net pay\r\n';
+        str += header;
+        for (var i = 0; i < Object.keys(file_data).length; i++) {
+            var line = '';
+            var guard_name = Object.keys(file_data)[i];
+            line += guard_name.toUpperCase() + ","; 
+            line += file_data[guard_name][0]["day_hours"] +",";
+            line += file_data[guard_name][0]["night_hours"] +",";
+            line += file_data[guard_name][0]["leave_hours"] +",";
+            line += (file_data[guard_name][0]["total_amount"]).toFixed(2) + "," ;
+            line += (file_data[guard_name][0]["tax"]).toFixed(2) + "," ;
+            line += (file_data[guard_name][0]["net_pay"]).toFixed(2) ;
+
+            str += line + '\r\n';
+        }
+
+		var hiddenElement = document.createElement('a');
+
+		hiddenElement.href = 'data:attachment/text,' + encodeURI(str);
+		hiddenElement.target = '_blank';
+		hiddenElement.download = 'calculated_payrate.csv';
+		hiddenElement.click();
+    }
+
 function ConvertToCSV_eba2() {
 		var pay_data = $( "#hidden_pay" ).html();
        	var file_data = JSON.parse(pay_data);
@@ -262,6 +290,19 @@ function DrawTable_eba(file_data,start_date,end_date,var_state) {
 	for (var i = 0; i < Object.keys(file_data).length; i++) {
 			var guard_name = Object.keys(file_data)[i];
 			str += "<tr><td>"+guard_name.toUpperCase()+"</td><td>"+var_state+"</td><td>"+file_data[guard_name][0]['weekday_no_rotating_rate']+"</td><td>"+file_data[guard_name][0]["weeknight_no_rotating_rate"]+"</td><td>"+file_data[guard_name][0]["weekday_and_weeknight_rate"]+"</td><td>"+file_data[guard_name][0]["weeknight_and_weekend_rotating_rate"].toFixed(2)+"</td><td>"+file_data[guard_name][0]["weekday_and_weeknight_and_weekend_rotating_rate"].toFixed(2)+"</td><td>"+file_data[guard_name][0]["public_holiday_hours"].toFixed(2)+"</td><td>"+file_data[guard_name][0]["leave_rate"]+"</td><td>"+parseFloat(file_data[guard_name][0]["total_amount"]).toFixed(2)+"</td><td>"+parseFloat(file_data[guard_name][0]["tax"]).toFixed(2)+"</td><td>"+parseFloat(file_data[guard_name][0]["net_pay"]).toFixed(2)+"</td><td><a style='cursor:pointer;color:blue' onclick='sendPayslip(\""+guard_name+"\",\""+start_date+"\",\""+end_date+"\")'>Send</a></td></tr>";
+	}
+	str +="</tbody></table>";
+	$("#pay").empty();
+	$("#pay").append(str);
+}
+
+function DrawTable_eba1(file_data,start_date,end_date,var_state) {
+	var file_data = JSON.parse(file_data);
+	var str = "<table id='pay_table'><thead><tr><td>Guard Name</td><td>State</td><td>27.00</td><td>27.90</td><td>Leave hours</td><td>Gross Pay</td><td>Tax</td><td>Net Pay</td><td>Payslip</td></tr></thead><tbody>";
+	
+	for (var i = 0; i < Object.keys(file_data).length; i++) {
+			var guard_name = Object.keys(file_data)[i];
+			str += "<tr><td>"+guard_name.toUpperCase()+"</td><td>"+var_state+"</td><td>"+file_data[guard_name][0]['day_hours']+"</td><td>"+file_data[guard_name][0]['night_hours']+"</td><td>"+file_data[guard_name][0]["leave_hours"]+"</td><td>"+parseFloat(file_data[guard_name][0]["total_amount"]).toFixed(2)+"</td><td>"+parseFloat(file_data[guard_name][0]["tax"]).toFixed(2)+"</td><td>"+parseFloat(file_data[guard_name][0]["net_pay"]).toFixed(2)+"</td><td><a style='cursor:pointer;color:blue' onclick='sendPayslip(\""+guard_name+"\",\""+start_date+"\",\""+end_date+"\")'>Send</a></td></tr>";
 	}
 	str +="</tbody></table>";
 	$("#pay").empty();
