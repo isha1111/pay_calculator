@@ -1310,7 +1310,7 @@ def calculate_jmd_eba3_rate(roaster_data, state):
 		temp_obj['hours'] = total_published_hours
 		temp_obj['rate'] = 26.65
 		temp_obj['leave_hours'] = leave_hours
-		total_pay = (26.65 * total_published_hours) + (20.21 * leave_hours)
+		total_pay = (26.65 * total_published_hours) + (21.90 * leave_hours)
 		temp_obj['total_amount'] = total_pay
 		temp_obj["tax"] = calculate_tax(total_pay)
 		total_worked_hours = total_published_hours
@@ -1415,7 +1415,7 @@ def calculate_jmd_eba2_rate(roaster_data, state):
 		temp_obj['hours'] = total_published_hours
 		temp_obj['rate'] = 26.00
 		temp_obj['leave_hours'] = leave_hours
-		total_pay = (26.00 * total_published_hours) + (20.21 * leave_hours)
+		total_pay = (26.00 * total_published_hours) + (21.90 * leave_hours)
 		temp_obj['total_amount'] = total_pay
 		temp_obj["tax"] = calculate_tax(total_pay)
 		total_worked_hours = total_published_hours
@@ -1617,7 +1617,7 @@ def calculate_jmd_eba1_rate(roaster_data, state):
 		temp_obj['day_hours'] = total_day_hours
 		temp_obj['night_hours'] = total_night_hours
 		temp_obj['leave_hours'] = leave_hours
-		total_amount = (total_day_hours * 27) + (total_night_hours * 27.90) + (leave_hours * 20.21)
+		total_amount = (total_day_hours * 27) + (total_night_hours * 27.90) + (leave_hours * 21.90)
 		temp_obj["total_amount"] = total_amount
 		temp_obj["tax"] = calculate_tax(total_amount)
 		temp_obj["super"] = calculate_super(total_amount)
